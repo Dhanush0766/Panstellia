@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Heart, ShoppingBag, Truck, Shield, RefreshCw, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { useProducts } from '../context/ProductContext';
 import { useCart } from '../context/CartContext';
@@ -7,10 +8,9 @@ import { useWishlist } from '../context/WishlistContext';
 import { toast } from 'react-toastify';
 import { getProductImageUrls, getDirectImageUrl } from '../utils/imageUtils';
 
-
-
 import SEOHelmet from '../utils/seoHelmet';
 import { getProductSchema } from '../utils/structuredData';
+
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -24,6 +24,11 @@ const ProductDetailPage = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [isAdding, setIsAdding] = useState(false);
 
+  const touchStartXRef = useRef(null);
+
+  const MAX_GALLERY_THUMBS = 6;
+
+
   useEffect(() => {
     const foundProduct = getProductById(id);
     if (foundProduct) {
@@ -33,6 +38,19 @@ const ProductDetailPage = () => {
     }
   }, [id, getProductById, navigate]);
 
+  const wishlisted = product ? isInWishlist(product.id) : false;
+  const discount = product?.originalPrice
+    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+    : 0;
+
+  const imageUrls = useMemo(() => {
+    const urls = product ? getProductImageUrls(product) : [];
+    return urls.slice(0, MAX_GALLERY_THUMBS);
+  }, [product]);
+
+  const safeSelectedImage = Math.min(Math.max(selectedImage, 0), Math.max(0, imageUrls.length - 1));
+  const imageUrl = imageUrls[safeSelectedImage] || imageUrls[0] || '';
+
   if (!product) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -41,13 +59,7 @@ const ProductDetailPage = () => {
     );
   }
 
-const wishlisted = isInWishlist(product.id);
-  const discount = product.originalPrice 
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-    : 0;
 
-  const imageUrls = getProductImageUrls(product);
-  const imageUrl = imageUrls[selectedImage] || imageUrls[0] || '';
 
 
   const relatedProducts = products
@@ -119,32 +131,104 @@ const wishlisted = isInWishlist(product.id);
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Image Gallery */}
           <div className="space-y-4">
-            <div className="relative overflow-hidden rounded-xl aspect-[4/5] bg-white">
-              <img
-                src={imageUrl}
-                alt={product.name}
-                className="w-full h-full object-cover"
-              />
+            <div
+              className="relative overflow-hidden rounded-xl aspect-[4/5] bg-white group"
+              onTouchStart={(e) => {
+                touchStartXRef.current = e.touches?.[0]?.clientX ?? null;
+              }}
+              onTouchEnd={(e) => {
+                const startX = touchStartXRef.current;
+                const endX = e.changedTouches?.[0]?.clientX ?? null;
+                touchStartXRef.current = null;
+                if (startX == null || endX == null) return;
+                const dx = endX - startX;
+                const SWIPE_THRESHOLD = 50;
+                if (Math.abs(dx) < SWIPE_THRESHOLD) return;
+
+                if (dx > 0) {
+                  setSelectedImage((prev) => (prev - 1 + imageUrls.length) % imageUrls.length);
+                } else {
+                  setSelectedImage((prev) => (prev + 1) % imageUrls.length);
+                }
+              }}
+            >
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={imageUrl}
+                  src={imageUrl}
+                  alt={product.name}
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority="high"
+                  initial={{ opacity: 0, scale: 1.03 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.28, ease: 'easeOut' }}
+                  className="w-full h-full object-cover transform will-change-transform group-hover:scale-[1.06] transition-transform duration-500"
+                />
+              </AnimatePresence>
+
               {discount > 0 && (
                 <div className="absolute top-4 left-4 badge badge-error text-lg px-4 py-2">
                   -{discount}% OFF
                 </div>
               )}
-            </div>
-              <div className="flex gap-4 overflow-x-auto scrollbar-hide">
-              {imageUrls.map((img, index) => (
+
+              {/* Navigation arrows */}
+              <div className="pointer-events-none absolute inset-y-0 left-0 right-0 flex items-center justify-between px-3">
                 <button
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
-                  className={`w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 border-2 ${
-                    selectedImage === index ? 'border-gold-500' : 'border-transparent'
-                  }`}
+                  type="button"
+                  aria-label="Previous image"
+                  onClick={() => setSelectedImage((prev) => (prev - 1 + imageUrls.length) % imageUrls.length)}
+                  className="pointer-events-auto rounded-full bg-white/70 backdrop-blur-md border border-luxury-100/70 shadow-sm hover:shadow-md transition-all p-2 hover:bg-white/90"
                 >
-                  <img src={img} alt="" className="w-full h-full object-cover" />
+                  <ChevronLeft className="w-5 h-5 text-luxury-900" />
                 </button>
-              ))}
+                <button
+                  type="button"
+                  aria-label="Next image"
+                  onClick={() => setSelectedImage((prev) => (prev + 1) % imageUrls.length)}
+                  className="pointer-events-auto rounded-full bg-white/70 backdrop-blur-md border border-luxury-100/70 shadow-sm hover:shadow-md transition-all p-2 hover:bg-white/90"
+                >
+                  <ChevronRight className="w-5 h-5 text-luxury-900" />
+                </button>
+              </div>
+
+              {/* Luxury glass highlight */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-tr from-gold-500/10 via-transparent to-gold-600/10" />
+            </div>
+
+            <div className="flex gap-4 overflow-x-auto scrollbar-hide">
+              {imageUrls.map((img, index) => {
+                const isActive = safeSelectedImage === index;
+                return (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedImage(index)}
+                    className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0"
+                    aria-label={`Select image ${index + 1}`}
+                  >
+                    <div
+                      className={`w-full h-full rounded-lg p-[2px] transition-all duration-300 ${
+                        isActive
+                          ? 'bg-gradient-to-b from-gold-400/60 to-gold-500/0 shadow-[0_0_0_2px_rgba(219,145,45,0.25),0_10px_25px_rgba(219,145,45,0.18)]'
+                          : 'bg-transparent border border-transparent'
+                      }`}
+                    >
+                      <div
+                        className={`w-full h-full rounded-[7px] overflow-hidden ${
+                          isActive ? 'bg-white/70 backdrop-blur-md' : 'bg-white'
+                        }`}
+                      >
+                        <img src={img} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
+
 
           {/* Details */}
           <div>
@@ -232,11 +316,16 @@ const wishlisted = isInWishlist(product.id);
                 <button
                   onClick={handleAddToCart}
                   disabled={isAdding}
-                  className="flex-1 btn-primary flex items-center justify-center"
+                  className="flex-1 btn-primary relative overflow-hidden flex items-center justify-center"
                 >
-                  <ShoppingBag className="w-5 h-5 mr-2" />
-                  {isAdding ? 'Adding...' : 'Add to Cart'}
+                  <span
+                    className="absolute inset-0 translate-x-[-120%] bg-gradient-to-r from-white/0 via-white/30 to-white/0 transition-transform duration-700 pointer-events-none"
+                  />
+                  <ShoppingBag className="w-5 h-5 mr-2 relative" />
+                  <span className="relative">{isAdding ? 'Adding...' : 'Add to Cart'}</span>
+                  <span className="relative" />
                 </button>
+
                 <button
                   onClick={handleWishlist}
                   className={` px-6 py-3 rounded-lg font-medium transition-all flex items-center justify-center ${
