@@ -45,6 +45,30 @@ const AdminPage = () => {
 
     // Admin controlled product arrival stage / availability state.
     productStatus: 'available',
+
+    // Product Specifications (used on ProductDetail page)
+    productName: '',
+    productCategory: '',
+    productType: '',
+    skuCode: '',
+    barcode: '',
+    brandName: '',
+    collectionName: '',
+    gender: '',
+    ageGroup: '',
+    occasion: '',
+    countryOfOrigin: '',
+
+    baseMaterial: '',
+    primaryStone: '',
+    stoneType: '',
+    stoneColor: '',
+    platingType: '',
+    platingThickness: '',
+    finishType: '',
+    nickelFree: null,
+    hypoallergenic: null,
+    tarnishResistant: null,
   });
 
   useEffect(() => {
@@ -132,6 +156,30 @@ const AdminPage = () => {
         featured: false,
         inStock: true,
         productStatus: 'available',
+
+        // Specifications
+        productName: '',
+        productCategory: '',
+        productType: '',
+        skuCode: '',
+        barcode: '',
+        brandName: '',
+        collectionName: '',
+        gender: '',
+        ageGroup: '',
+        occasion: '',
+        countryOfOrigin: '',
+
+        baseMaterial: '',
+        primaryStone: '',
+        stoneType: '',
+        stoneColor: '',
+        platingType: '',
+        platingThickness: '',
+        finishType: '',
+        nickelFree: null,
+        hypoallergenic: null,
+        tarnishResistant: null,
       });
     } catch (error) {
       console.error('Error saving product:', error);
@@ -147,15 +195,40 @@ const AdminPage = () => {
       : '';
 
     setProductForm({
-      name: product.name,
-      description: product.description,
+      name: product.name ?? '',
+      description: product.description ?? '',
       price: product.price?.toString() || '',
       originalPrice: product.originalPrice?.toString() || '',
-      image: product.image || '',
+      image: product.image ?? '',
       imagesText,
       category: product.category || 'Gold',
       featured: product.featured || false,
       inStock: product.inStock ?? true,
+      productStatus: product.productStatus ?? 'available',
+
+      // Specifications
+      productName: product.productName ?? '',
+      productCategory: product.productCategory ?? '',
+      productType: product.productType ?? '',
+      skuCode: product.skuCode ?? '',
+      barcode: product.barcode ?? '',
+      brandName: product.brandName ?? '',
+      collectionName: product.collectionName ?? '',
+      gender: product.gender ?? '',
+      ageGroup: product.ageGroup ?? '',
+      occasion: product.occasion ?? '',
+      countryOfOrigin: product.countryOfOrigin ?? '',
+
+      baseMaterial: product.baseMaterial ?? '',
+      primaryStone: product.primaryStone ?? '',
+      stoneType: product.stoneType ?? '',
+      stoneColor: product.stoneColor ?? '',
+      platingType: product.platingType ?? '',
+      platingThickness: product.platingThickness ?? '',
+      finishType: product.finishType ?? '',
+      nickelFree: product.nickelFree ?? null,
+      hypoallergenic: product.hypoallergenic ?? null,
+      tarnishResistant: product.tarnishResistant ?? null,
     });
 
     setShowProductForm(true);
@@ -340,6 +413,30 @@ const AdminPage = () => {
                         featured: false,
                         inStock: true,
                         productStatus: 'available',
+
+                        // Specifications
+                        productName: '',
+                        productCategory: '',
+                        productType: '',
+                        skuCode: '',
+                        barcode: '',
+                        brandName: '',
+                        collectionName: '',
+                        gender: '',
+                        ageGroup: '',
+                        occasion: '',
+                        countryOfOrigin: '',
+
+                        baseMaterial: '',
+                        primaryStone: '',
+                        stoneType: '',
+                        stoneColor: '',
+                        platingType: '',
+                        platingThickness: '',
+                        finishType: '',
+                        nickelFree: null,
+                        hypoallergenic: null,
+                        tarnishResistant: null,
                       });
                     }}
                     className="btn-primary flex items-center"
@@ -469,8 +566,265 @@ const AdminPage = () => {
                           </label>
                         </div>
 
+                        {/* Specifications */}
+                        <div className="pt-4 border-t border-luxury-200">
+                          <h4 className="font-semibold text-luxury-900 mb-3">
+                            Add Products Specifications
+                          </h4>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Product Name</label>
+                              <input
+                                type="text"
+                                name="productName"
+                                value={productForm.productName}
+                                onChange={handleInputChange}
+                                className="input-field"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Product Category</label>
+                              <input
+                                type="text"
+                                name="productCategory"
+                                value={productForm.productCategory}
+                                onChange={handleInputChange}
+                                className="input-field"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Product Type</label>
+                              <input
+                                type="text"
+                                name="productType"
+                                value={productForm.productType}
+                                onChange={handleInputChange}
+                                className="input-field"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium mb-1">SKU Code</label>
+                              <input
+                                type="text"
+                                name="skuCode"
+                                value={productForm.skuCode}
+                                onChange={handleInputChange}
+                                className="input-field"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Barcode / EAN</label>
+                              <input
+                                type="text"
+                                name="barcode"
+                                value={productForm.barcode}
+                                onChange={handleInputChange}
+                                className="input-field"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Brand Name</label>
+                              <input
+                                type="text"
+                                name="brandName"
+                                value={productForm.brandName}
+                                onChange={handleInputChange}
+                                className="input-field"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Collection Name</label>
+                              <input
+                                type="text"
+                                name="collectionName"
+                                value={productForm.collectionName}
+                                onChange={handleInputChange}
+                                className="input-field"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Gender</label>
+                              <input
+                                type="text"
+                                name="gender"
+                                value={productForm.gender}
+                                onChange={handleInputChange}
+                                className="input-field"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Age Group</label>
+                              <input
+                                type="text"
+                                name="ageGroup"
+                                value={productForm.ageGroup}
+                                onChange={handleInputChange}
+                                className="input-field"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Occasion</label>
+                              <input
+                                type="text"
+                                name="occasion"
+                                value={productForm.occasion}
+                                onChange={handleInputChange}
+                                className="input-field"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Country of Origin</label>
+                              <input
+                                type="text"
+                                name="countryOfOrigin"
+                                value={productForm.countryOfOrigin}
+                                onChange={handleInputChange}
+                                className="input-field"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Base Material</label>
+                              <input
+                                type="text"
+                                name="baseMaterial"
+                                value={productForm.baseMaterial}
+                                onChange={handleInputChange}
+                                className="input-field"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Primary Stone</label>
+                              <input
+                                type="text"
+                                name="primaryStone"
+                                value={productForm.primaryStone}
+                                onChange={handleInputChange}
+                                className="input-field"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Stone Type</label>
+                              <input
+                                type="text"
+                                name="stoneType"
+                                value={productForm.stoneType}
+                                onChange={handleInputChange}
+                                className="input-field"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Stone Color</label>
+                              <input
+                                type="text"
+                                name="stoneColor"
+                                value={productForm.stoneColor}
+                                onChange={handleInputChange}
+                                className="input-field"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Plating Type</label>
+                              <input
+                                type="text"
+                                name="platingType"
+                                value={productForm.platingType}
+                                onChange={handleInputChange}
+                                className="input-field"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Plating Thickness</label>
+                              <input
+                                type="text"
+                                name="platingThickness"
+                                value={productForm.platingThickness}
+                                onChange={handleInputChange}
+                                className="input-field"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Finish Type</label>
+                              <input
+                                type="text"
+                                name="finishType"
+                                value={productForm.finishType}
+                                onChange={handleInputChange}
+                                className="input-field"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="flex items-center gap-2 text-sm font-medium mb-1">
+                                <input
+                                  type="checkbox"
+                                  name="nickelFree"
+                                  checked={productForm.nickelFree === true}
+                                  onChange={(e) =>
+                                    setProductForm((prev) => ({
+                                      ...prev,
+                                      nickelFree: e.target.checked ? true : false,
+                                    }))
+                                  }
+                                />
+                                Nickel Free
+                              </label>
+                            </div>
+
+                            <div>
+                              <label className="flex items-center gap-2 text-sm font-medium mb-1">
+                                <input
+                                  type="checkbox"
+                                  name="hypoallergenic"
+                                  checked={productForm.hypoallergenic === true}
+                                  onChange={(e) =>
+                                    setProductForm((prev) => ({
+                                      ...prev,
+                                      hypoallergenic: e.target.checked ? true : false,
+                                    }))
+                                  }
+                                />
+                                Hypoallergenic
+                              </label>
+                            </div>
+
+                            <div className="sm:col-span-2">
+                              <label className="flex items-center gap-2 text-sm font-medium mb-1">
+                                <input
+                                  type="checkbox"
+                                  name="tarnishResistant"
+                                  checked={productForm.tarnishResistant === true}
+                                  onChange={(e) =>
+                                    setProductForm((prev) => ({
+                                      ...prev,
+                                      tarnishResistant: e.target.checked ? true : false,
+                                    }))
+                                  }
+                                />
+                                Tarnish Resistant
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+
                         <div className="flex gap-4">
-                          <button type="submit" disabled={loading} className="flex-1 btn-primary">
+                          <button
+                            type="submit"
+                            disabled={loading}
+                            className="flex-1 btn-primary"
+                          >
                             {loading ? 'Saving...' : 'Save Product'}
                           </button>
                           <button

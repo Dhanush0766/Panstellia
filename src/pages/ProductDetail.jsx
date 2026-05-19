@@ -340,6 +340,44 @@ const ProductDetailPage = () => {
               </div>
             </div>
 
+            {/* Specifications */}
+            <div className="mt-10">
+              <h2 className="font-semibold text-luxury-900 text-xl mb-4">Product Specifications</h2>
+              <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                {[
+                  ['Product Name', product.productName],
+                  ['Product Category', product.productCategory],
+                  ['Product Type', product.productType],
+                  ['SKU Code', product.skuCode],
+                  ['Barcode / EAN', product.barcode],
+                  ['Brand Name', product.brandName],
+                  ['Collection Name', product.collectionName],
+                  ['Gender', product.gender],
+                  ['Age Group', product.ageGroup],
+                  ['Occasion', product.occasion],
+                  ['Country of Origin', product.countryOfOrigin],
+
+                  ['Base Material', product.baseMaterial],
+                  ['Primary Stone', product.primaryStone],
+                  ['Stone Type', product.stoneType],
+                  ['Stone Color', product.stoneColor],
+                  ['Plating Type', product.platingType],
+                  ['Plating Thickness', product.platingThickness],
+                  ['Finish Type', product.finishType],
+                  ['Nickel Free', product.nickelFree != null ? (product.nickelFree ? 'Yes' : 'No') : undefined],
+                  ['Hypoallergenic', product.hypoallergenic != null ? (product.hypoallergenic ? 'Yes' : 'No') : undefined],
+                  ['Tarnish Resistant', product.tarnishResistant != null ? (product.tarnishResistant ? 'Yes' : 'No') : undefined],
+                ]
+                  .filter(([, v]) => v !== undefined && v !== null && String(v).trim() !== '')
+                  .map(([label, value]) => (
+                    <div key={label}>
+                      <dt className="text-luxury-500">{label}</dt>
+                      <dd className="text-luxury-900 font-medium">{String(value)}</dd>
+                    </div>
+                  ))}
+              </dl>
+            </div>
+
             {/* Stock Status */}
             <div className="mt-6 flex items-center gap-2">
               <Check className="w-5 h-5 text-green-500" />

@@ -157,9 +157,23 @@ export default function ReportsAdmin() {
     };
   }, [user, isAdmin]);
 
+  const formatDateTime = (value) => {
+    const d = safeToDate(value);
+    if (!d) return '—';
+    // readable date + time
+    return d.toLocaleString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
   const filteredRows = useMemo(() => {
     const fromDate = safeToDate(filters.from);
     const toDate = safeToDate(filters.to);
+
 
     const minValue = filters.minValue !== '' ? Number(filters.minValue) : null;
     const maxValue = filters.maxValue !== '' ? Number(filters.maxValue) : null;
@@ -348,6 +362,7 @@ export default function ReportsAdmin() {
               <thead className="bg-luxury-50">
                 <tr>
                   <th className="px-4 py-3 text-left text-sm font-medium text-luxury-700 whitespace-nowrap">Order ID</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-luxury-700 whitespace-nowrap">Ordered date &amp; time</th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-luxury-700 whitespace-nowrap">Customer Name</th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-luxury-700 whitespace-nowrap">Mob No</th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-luxury-700 whitespace-nowrap">Customer Mail</th>
@@ -368,7 +383,7 @@ export default function ReportsAdmin() {
               <tbody className="divide-y divide-luxury-200">
                 {filteredRows.length === 0 ? (
                   <tr>
-                    <td colSpan={17} className="px-4 py-10 text-center text-luxury-600">
+                    <td colSpan={18} className="px-4 py-10 text-center text-luxury-600">
                       No report rows found.
                     </td>
                   </tr>
@@ -378,6 +393,7 @@ export default function ReportsAdmin() {
 
                     <tr key={r.id}>
                       <td className="px-4 py-3">{r.orderId || '—'}</td>
+                      <td className="px-4 py-3">{formatDateTime(r.createdAt)}</td>
                       <td className="px-4 py-3">{r.customerName || '—'}</td>
                       <td className="px-4 py-3">{r.mobNo || '—'}</td>
                       <td className="px-4 py-3">{r.customerMail || '—'}</td>

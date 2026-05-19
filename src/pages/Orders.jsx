@@ -27,8 +27,6 @@ const OrdersPage = () => {
     search: '',
     status: 'All',
     month: 'All', // e.g. '2026-05'
-    minTotal: '',
-    maxTotal: '',
   });
 
   const resetFilters = () => {
@@ -36,8 +34,6 @@ const OrdersPage = () => {
       search: '',
       status: 'All',
       month: 'All',
-      minTotal: '',
-      maxTotal: '',
     });
   };
 
@@ -274,29 +270,8 @@ const OrdersPage = () => {
                     </select>
                   </div>
 
-                  <div>
-                    <label className="block text-sm text-luxury-500 mb-1">Min Total</label>
 
-                    <input
-                      value={filters.minTotal}
-                      onChange={(e) => setFilters((p) => ({ ...p, minTotal: e.target.value }))}
-                      placeholder="0"
-                      inputMode="numeric"
-                      className="w-full px-3 py-2 border border-luxury-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-gold-500"
-                    />
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm text-luxury-500 mb-1">Max Total</label>
-                    <input
-                      value={filters.maxTotal}
-                      onChange={(e) => setFilters((p) => ({ ...p, maxTotal: e.target.value }))}
-                      placeholder=""
-                      inputMode="numeric"
-                      className="w-full px-3 py-2 border border-luxury-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-gold-500"
-                    />
-                  </div>
-
+                  
                   <div className="flex items-end justify-end">
                     <button
                       onClick={resetFilters}
