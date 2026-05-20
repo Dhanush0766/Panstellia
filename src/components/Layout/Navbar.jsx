@@ -90,6 +90,9 @@ const Navbar = () => {
             <Link to="/category/elegant-spark" className="text-luxury-700 hover:text-gold-600 transition-colors">
               {getCategoryLabel('Elegant Spark')}
             </Link>
+            <Link to="/products?category=Piercings" className="text-luxury-700 hover:text-gold-600 transition-colors">
+              {getCategoryLabel('Piercings')}
+            </Link>
           </div>
 
           {/* Search & Icons */}
@@ -227,6 +230,9 @@ const Navbar = () => {
             </Link>
             <Link to="/category/elegant-spark" className="block text-luxury-700 hover:text-gold-600" onClick={() => setIsOpen(false)}>
               {getCategoryLabel('Elegant Spark')}
+            </Link>
+            <Link to="/products?category=Piercings" className="block text-luxury-700 hover:text-gold-600" onClick={() => setIsOpen(false)}>
+              {getCategoryLabel('Piercings')}
             </Link>
           </div>
         </div>

@@ -12,7 +12,7 @@ const AboutUsPage = () => {
   ];
 
   const teamMembers = [
-    { name: 'Cimoen Moses', role: 'Founder & MD', specialty: 'Curated Selection', img: 'https://i.ibb.co/Ldr9v8Mv/CM.png' },
+    { name: 'Cimeon Moses', role: 'Founder & MD', specialty: 'Curated Selection', img: 'https://i.ibb.co/Ldr9v8Mv/CM.png' },
   ];
 
   const craftSteps = [

@@ -112,11 +112,12 @@ const HomePage = () => {
         <div className="absolute inset-0 bg-pattern opacity-50"></div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-center">
             <motion.div 
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
+              className="lg:col-span-2"
             >
               <div className="inline-flex items-center px-4 py-2 bg-gold-100 rounded-full text-gold-700 text-sm font-medium mb-6">
                 <Sparkles className="w-4 h-4 mr-2" />
@@ -145,11 +146,11 @@ const HomePage = () => {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="block"
+              className="block lg:col-span-3"
             >
-              <div className="relative h-72 md:h-96">
-                <div className="absolute -top-4 -left-4 w-72 h-72 bg-gold-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse-slow"></div>
-                <div className="absolute -bottom-4 -right-4 w-72 h-72 bg-luxury-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse-slow"></div>
+              <div className="relative h-96 md:h-screen">
+                <div className="absolute -top-4 -left-4 w-96 h-96 bg-gold-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse-slow"></div>
+                <div className="absolute -bottom-4 -right-4 w-96 h-96 bg-luxury-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse-slow"></div>
                 
                 <div className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl">
                   {heroImages.map((img, index) => (
@@ -164,38 +165,6 @@ const HomePage = () => {
                       className="absolute inset-0 w-full h-full object-cover"
                     />
                   ))}
-                  
-                  {/* Navigation Buttons */}
-                  <button
-                    onClick={() => setCurrentHeroImageIndex((prev) => (prev - 1 + heroImages.length) % heroImages.length)}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gold-600 p-2 rounded-full transition-all z-10 shadow-lg"
-                    aria-label="Previous image"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => setCurrentHeroImageIndex((prev) => (prev + 1) % heroImages.length)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gold-600 p-2 rounded-full transition-all z-10 shadow-lg"
-                    aria-label="Next image"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
-                  
-                  {/* Dot Indicators */}
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-                    {heroImages.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentHeroImageIndex(index)}
-                        className={`w-2 h-2 rounded-full transition-all ${
-                          index === currentHeroImageIndex
-                            ? 'bg-white w-6'
-                            : 'bg-white/50 hover:bg-white/75'
-                        }`}
-                        aria-label={`Go to slide ${index + 1}`}
-                      />
-                    ))}
-                  </div>
                 </div>
               </div>
             </motion.div>
@@ -278,7 +247,7 @@ const HomePage = () => {
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {loading ? (
               Array(8).fill(0).map((_, i) => (
                 <div key={i} className="bg-white rounded-xl overflow-hidden">
@@ -332,7 +301,7 @@ const HomePage = () => {
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Link>
             </div>
-            <div className="flex items-center justify-center relative h-72 md:h-80">
+            <div className="flex items-center justify-center relative h-96 md:h-screen-1/2">
               <div className="relative w-full h-full overflow-hidden rounded-xl shadow-2xl">
                 {collectionImages.map((img, index) => (
                   <motion.img
