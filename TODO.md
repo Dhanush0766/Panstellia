@@ -1,9 +1,8 @@
-# TODO
-
-- [x] Fix runtime crash in `src/components/UI/ProductCard.jsx`: `getCategoryLabel is not defined`.
-- [x] Import `getCategoryLabel` from `src/utils/categoryLabels.js`.
-  - [x] Run frontend build (vite build) to confirm the crash is resolved.
-- [ ] (Optional) Address React Router future-flag warnings once the app is running again.
-
-
+- [ ] Inspect Admin product form image handling
+- [ ] Implement IMGBB direct image upload helper using IMGBB API
+- [ ] Update Admin UI to add file inputs for cover + multiple gallery images
+- [ ] Wire upload results to productForm.image and productForm.imagesText
+- [ ] Keep existing URL-based inputs working for backward compatibility
+- [ ] Add previews/loading/error feedback for uploads
+- [ ] Build/test app to ensure no runtime issues
 

@@ -19,6 +19,28 @@ import { getCategoryLabel } from '../utils/categoryLabels';
 import RevenueAdmin from './RevenueAdmin';
 import ReportsAdmin from './ReportsAdmin';
 
+const IMGBB_API_KEY = '9a0e0b55fb1deeb61ec148cf9273fd43';
+
+const uploadImageToImgBB = async (file) => {
+  const formData = new FormData();
+  formData.append('key', IMGBB_API_KEY);
+  formData.append('image', file);
+
+  const res = await fetch('https://api.imgbb.com/1/upload', {
+    method: 'POST',
+    body: formData,
+  });
+
+  const data = await res.json();
+  if (!res.ok || !data?.success) {
+    const msg = data?.error?.message || 'IMGBB upload failed';
+    throw new Error(msg);
+  }
+
+  return data?.data?.url;
+};
+
+
 const AdminPage = () => {
   const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
@@ -29,6 +51,8 @@ const AdminPage = () => {
   const [orders, setOrders] = useState([]);
 
   const [loading, setLoading] = useState(false);
+  const [imageUploadStatus, setImageUploadStatus] = useState('');
+  const [imageUploadError, setImageUploadError] = useState('');
 
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -38,7 +62,9 @@ const AdminPage = () => {
     price: '',
     originalPrice: '',
     image: '',
+    imageFile: null,
     imagesText: '',
+    imagesFiles: [],
 
     category: 'Gold',
     featured: false,
@@ -112,6 +138,59 @@ const AdminPage = () => {
     }));
   };
 
+  const handleImageFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImageUploadError('');
+    setImageUploadStatus(`Uploading ${file.name}...`);
+
+    try {
+      const url = await uploadImageToImgBB(file);
+      setProductForm((prev) => ({
+        ...prev,
+        imageFile: file,
+        image: url,
+      }));
+      setImageUploadStatus(`Uploaded ${file.name}`);
+    } catch (error) {
+      setImageUploadError(error?.message || 'Failed to upload image');
+      setImageUploadStatus('');
+      console.error('Image upload failed:', error);
+    }
+  };
+
+  const handleImagesFilesChange = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    setImageUploadError('');
+    setImageUploadStatus(`Uploading ${files.length} images...`);
+
+    const uploadPromises = files.map(async (file) => {
+      try {
+        return await uploadImageToImgBB(file);
+      } catch (error) {
+        console.error('Image upload failed:', file.name, error);
+        return null;
+      }
+    });
+
+    const urls = (await Promise.all(uploadPromises)).filter(Boolean);
+
+    if (urls.length > 0) {
+      setProductForm((prev) => ({
+        ...prev,
+        imagesFiles: files,
+        imagesText: urls.join(', '),
+      }));
+      setImageUploadStatus(`Uploaded ${urls.length} images`);
+    } else {
+      setImageUploadError('Failed to upload selected images.');
+      setImageUploadStatus('');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -124,20 +203,22 @@ const AdminPage = () => {
             .filter(Boolean)
         : [];
 
+      const { imageFile, imagesFiles, ...formValues } = productForm;
+
       const productData = {
-        ...productForm,
+        ...formValues,
         // Firestore rejects undefined values in documents.
         // So we omit `images` entirely when none are provided.
         ...(images.length > 0 ? { images } : {}),
-        price: parseInt(productForm.price, 10),
-        originalPrice: productForm.originalPrice
-          ? parseInt(productForm.originalPrice, 10)
+        price: parseInt(formValues.price, 10),
+        originalPrice: formValues.originalPrice
+          ? parseInt(formValues.originalPrice, 10)
           : null,
         id: editingProduct?.id || `prod_${Date.now()}`,
       };
 
       if (!productData.images || productData.images.length === 0) {
-        productData.image = productForm.image;
+        productData.image = formValues.image;
       }
 
       if (editingProduct) {
@@ -148,13 +229,17 @@ const AdminPage = () => {
 
       setShowProductForm(false);
       setEditingProduct(null);
+      setImageUploadStatus('');
+      setImageUploadError('');
       setProductForm({
         name: '',
         description: '',
         price: '',
         originalPrice: '',
         image: '',
+        imageFile: null,
         imagesText: '',
+        imagesFiles: [],
         category: 'Gold',
         featured: false,
         inStock: true,
@@ -203,7 +288,9 @@ const AdminPage = () => {
       price: product.price?.toString() || '',
       originalPrice: product.originalPrice?.toString() || '',
       image: product.image ?? '',
+      imageFile: null,
       imagesText,
+      imagesFiles: [],
       category: product.category || 'Gold',
       featured: product.featured || false,
       inStock: product.inStock ?? true,
@@ -503,31 +590,68 @@ const AdminPage = () => {
                           </div>
                         </div>
 
-                        <div>
-                          <label className="block text-sm font-medium mb-1">Image URL</label>
-                          <input
-                            type="url"
-                            name="image"
-                            value={productForm.image}
-                            onChange={handleInputChange}
-                            required
-                            placeholder="https://..."
-                            className="input-field"
-                          />
-                        </div>
+                        <div className="rounded-2xl border border-luxury-200 bg-luxury-50 p-4">
+                          <div className="flex items-center justify-between mb-4">
+                            <div>
+                              <h4 className="text-base font-semibold text-luxury-900">Product Images</h4>
+                              <p className="text-sm text-luxury-600">Provide a main image and optional additional images.</p>
+                            </div>
+                          </div>
 
-                        <div>
-                          <label className="block text-sm font-medium mb-1">
-                            Multiple Images (comma separated)
-                          </label>
-                          <input
-                            type="text"
-                            name="imagesText"
-                            value={productForm.imagesText}
-                            onChange={handleInputChange}
-                            placeholder="https://... , https://..."
-                            className="input-field"
-                          />
+                          <div className="space-y-4">
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Main Image URL</label>
+                              <input
+                                type="url"
+                                name="image"
+                                value={productForm.image}
+                                onChange={handleInputChange}
+                                required
+                                placeholder="https://..."
+                                className="input-field"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Or upload main image</label>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageFileChange}
+                                className="w-full text-sm text-luxury-700"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Additional Images</label>
+                              <input
+                                type="text"
+                                name="imagesText"
+                                value={productForm.imagesText}
+                                onChange={handleInputChange}
+                                placeholder="https://... , https://..."
+                                className="input-field"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Or upload additional images</label>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                onChange={handleImagesFilesChange}
+                                className="w-full text-sm text-luxury-700"
+                              />
+                            </div>
+                          </div>
+
+                          {imageUploadStatus && (
+                            <p className="mt-3 text-sm text-gold-600">{imageUploadStatus}</p>
+                          )}
+                          {imageUploadError && (
+                            <p className="mt-3 text-sm text-red-600">{imageUploadError}</p>
+                          )}
                         </div>
 
                         <div>

@@ -11,11 +11,22 @@ import { getCategoryLabel } from '../utils/categoryLabels';
 const HomePage = () => {
   const { getFeaturedProducts, products, loading } = useProducts();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [currentHeroImageIndex, setCurrentHeroImageIndex] = useState(0);
+
+  const heroImages = [
+    'https://i.ibb.co/ZzPs9fjL/file-00000000504871faa21d33d104f87fa3.png',
+    'https://i.ibb.co/wFKPsvF3/file-0000000067f871faa8219b12c171e65f.png',
+    'https://i.ibb.co/v6D0LrQG/file-0000000035cc71fa963321ed9c5ee32f.png',
+    'https://i.ibb.co/HfHynYrb/file-00000000501871fabeb3ad48399d23bd.png',
+    'https://i.ibb.co/DD38dQ8Q/file-000000008b207207972a2996aa7d3be3.png',
+  ];
 
   const collectionImages = [
     'https://i.ibb.co/wFKPsvF3/file-0000000067f871faa8219b12c171e65f.png',
     'https://i.ibb.co/v6D0LrQG/file-0000000035cc71fa963321ed9c5ee32f.png',
     'https://i.ibb.co/HfHynYrb/file-00000000501871fabeb3ad48399d23bd.png',
+    'https://i.ibb.co/4gRy3WYW/Use-AI-Image-May-19-2026-13-21-30.png',
+    'https://i.ibb.co/DD38dQ8Q/file-000000008b207207972a2996aa7d3be3.png',
   ];
 
   useEffect(() => {
@@ -24,6 +35,13 @@ const HomePage = () => {
     }, 5000);
     return () => clearInterval(interval);
   }, [collectionImages.length]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentHeroImageIndex((prev) => (prev + 1) % heroImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [heroImages.length]);
 
   const categories = [
     {
@@ -127,16 +145,58 @@ const HomePage = () => {
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="hidden lg:block"
+              className="block"
             >
-              <div className="relative">
+              <div className="relative h-72 md:h-96">
                 <div className="absolute -top-4 -left-4 w-72 h-72 bg-gold-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse-slow"></div>
                 <div className="absolute -bottom-4 -right-4 w-72 h-72 bg-luxury-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse-slow"></div>
-                <img 
-                  src="https://i.ibb.co/ZzPs9fjL/file-00000000504871faa21d33d104f87fa3.png" 
-                  alt="Featured Necklace" 
-                  className="relative rounded-2xl shadow-2xl"
-                />
+                
+                <div className="relative w-full h-full overflow-hidden rounded-2xl shadow-2xl">
+                  {heroImages.map((img, index) => (
+                    <motion.img
+                      key={index}
+                      src={img}
+                      alt={`Featured Necklace ${index + 1}`}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: index === currentHeroImageIndex ? 1 : 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.5 }}
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  ))}
+                  
+                  {/* Navigation Buttons */}
+                  <button
+                    onClick={() => setCurrentHeroImageIndex((prev) => (prev - 1 + heroImages.length) % heroImages.length)}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gold-600 p-2 rounded-full transition-all z-10 shadow-lg"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => setCurrentHeroImageIndex((prev) => (prev + 1) % heroImages.length)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gold-600 p-2 rounded-full transition-all z-10 shadow-lg"
+                    aria-label="Next image"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                  
+                  {/* Dot Indicators */}
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                    {heroImages.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentHeroImageIndex(index)}
+                        className={`w-2 h-2 rounded-full transition-all ${
+                          index === currentHeroImageIndex
+                            ? 'bg-white w-6'
+                            : 'bg-white/50 hover:bg-white/75'
+                        }`}
+                        aria-label={`Go to slide ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                </div>
               </div>
             </motion.div>
           </div>
@@ -272,7 +332,7 @@ const HomePage = () => {
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Link>
             </div>
-            <div className="hidden md:flex items-center justify-center relative h-80">
+            <div className="flex items-center justify-center relative h-72 md:h-80">
               <div className="relative w-full h-full overflow-hidden rounded-xl shadow-2xl">
                 {collectionImages.map((img, index) => (
                   <motion.img
