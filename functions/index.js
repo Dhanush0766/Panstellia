@@ -5,6 +5,12 @@ const crypto = require("crypto");
 
 // Firebase Functions v2
 const { onRequest } = require("firebase-functions/v2/https");
+const { defineSecret } = require("firebase-functions/params");
+
+const razorpayKeyId = defineSecret("RAZORPAY_KEY_ID");
+const razorpayKeySecret = defineSecret("RAZORPAY_KEY_SECRET");
+
+const FUNCTION_REGION = process.env.FUNCTION_REGION || "asia-south1";
 
 // Initialize Firebase Admin (if you later need Firestore; harmless otherwise)
 try {
@@ -13,11 +19,38 @@ try {
   // ignore if already initialized
 }
 
-const allowedOrigins = [
+const defaultAllowedOrigins = [
   "http://localhost:5173",
+  "http://127.0.0.1:5173",
   "https://panstellia.vercel.app",
   "https://panstellia.com",
+  "https://www.panstellia.com",
 ];
+
+function getAllowedOrigins() {
+  const configuredOrigins = (process.env.CORS_ORIGINS || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  return new Set([...defaultAllowedOrigins, ...configuredOrigins]);
+}
+
+function isOriginAllowed(origin) {
+  return !origin || getAllowedOrigins().has(origin);
+}
+
+function isRazorpayAuthError(error) {
+  const statusCode = error?.statusCode || error?.error?.statusCode;
+  const code = error?.error?.code || error?.code;
+  const description = String(error?.error?.description || error?.message || "").toLowerCase();
+
+  return (
+    statusCode === 401 ||
+    code === "AUTHENTICATION_FAILURE" ||
+    description.includes("authentication failed")
+  );
+}
 
 const corsMiddleware = cors({
   // Reflect only explicitly allowed origins
@@ -25,7 +58,7 @@ const corsMiddleware = cors({
     // Allow requests with no origin (e.g., curl)
     if (!origin) return callback(null, true);
 
-    if (allowedOrigins.includes(origin)) {
+    if (isOriginAllowed(origin)) {
       return callback(null, true);
     }
 
@@ -42,7 +75,7 @@ const corsMiddleware = cors({
 function setExplicitCorsHeaders(req, res) {
   const origin = req.headers.origin;
   if (!origin) return;
-  if (!allowedOrigins.includes(origin)) return;
+  if (!isOriginAllowed(origin)) return;
 
   res.setHeader("Access-Control-Allow-Origin", origin);
   res.setHeader("Vary", "Origin");
@@ -55,7 +88,12 @@ function setExplicitCorsHeaders(req, res) {
  * Important: handle OPTIONS preflight without invoking the main handler.
  */
 function withCors(handler) {
-  return onRequest(async (req, res) => {
+  return onRequest(
+    {
+      region: FUNCTION_REGION,
+      secrets: [razorpayKeyId, razorpayKeySecret],
+    },
+    async (req, res) => {
     // Log minimal request info for debugging CORS/preflight
     console.log("[functions] incoming request", {
       method: req.method,
@@ -66,6 +104,11 @@ function withCors(handler) {
 
     // Ensure we always set the CORS headers before responding.
     setExplicitCorsHeaders(req, res);
+
+    if (!isOriginAllowed(req.headers.origin)) {
+      console.warn("[functions] blocked CORS origin", req.headers.origin);
+      return res.status(403).json({ error: "CORS blocked" });
+    }
 
     // Run CORS middleware to apply its headers as well.
     corsMiddleware(req, res, (err) => {
@@ -89,13 +132,24 @@ function withCors(handler) {
 
       return handler(req, res);
     });
-  });
+    }
+  );
 }
 
+function readEnvOrSecret(secretParam, envName) {
+  try {
+    const secretValue = secretParam.value();
+    if (secretValue) return secretValue;
+  } catch {
+    // Falls back to process.env for local emulator and non-secret env usage.
+  }
+
+  return process.env[envName];
+}
 
 function getRazorpayClient() {
-  const keyId = process.env.RAZORPAY_KEY_ID;
-  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  const keyId = readEnvOrSecret(razorpayKeyId, "RAZORPAY_KEY_ID");
+  const keySecret = readEnvOrSecret(razorpayKeySecret, "RAZORPAY_KEY_SECRET");
 
   if (!keyId || !keySecret) return null;
 
@@ -107,8 +161,8 @@ function getRazorpayClient() {
 
 function getMissingRazorpayEnv() {
   const missing = [];
-  if (!process.env.RAZORPAY_KEY_ID) missing.push("RAZORPAY_KEY_ID");
-  if (!process.env.RAZORPAY_KEY_SECRET) missing.push("RAZORPAY_KEY_SECRET");
+  if (!readEnvOrSecret(razorpayKeyId, "RAZORPAY_KEY_ID")) missing.push("RAZORPAY_KEY_ID");
+  if (!readEnvOrSecret(razorpayKeySecret, "RAZORPAY_KEY_SECRET")) missing.push("RAZORPAY_KEY_SECRET");
   return missing;
 }
 
@@ -169,6 +223,14 @@ function sanitizeAddress(address) {
 function buildOrderNumber(prefix = "PAN") {
   const random = Math.random().toString(36).slice(2, 8).toUpperCase();
   return `${prefix}-${Date.now()}-${random}`;
+}
+
+function signaturesMatch(expectedSignature, receivedSignature) {
+  const expected = Buffer.from(String(expectedSignature), "hex");
+  const received = Buffer.from(String(receivedSignature), "hex");
+
+  if (expected.length !== received.length) return false;
+  return crypto.timingSafeEqual(expected, received);
 }
 
 async function findPendingPaymentByRazorpayOrderId(razorpayOrderId, userId) {
@@ -298,6 +360,7 @@ async function createOrderHandler(req, res) {
 
     return res.status(200).json({
       order_id: order.id,
+      key_id: readEnvOrSecret(razorpayKeyId, "RAZORPAY_KEY_ID"),
       local_order_id: orderRef.id,
       payment_record_id: paymentRef.id,
       order_number: orderNumber,
@@ -308,9 +371,8 @@ async function createOrderHandler(req, res) {
     console.error("[functions] Error creating order:", error);
 
     const statusCode = error?.statusCode || 500;
-    const code = error?.error?.code;
 
-    if (statusCode === 401 || code === "AUTHENTICATION_FAILURE") {
+    if (isRazorpayAuthError(error)) {
       return res.status(401).json({
         error:
           "Razorpay authentication failed. Check that RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET are from the same Razorpay key pair, then redeploy functions.",
@@ -338,8 +400,8 @@ async function verifyPaymentHandler(req, res) {
       });
     }
 
-    const keySecret = process.env.RAZORPAY_KEY_SECRET;
-    const keyId = process.env.RAZORPAY_KEY_ID;
+    const keySecret = readEnvOrSecret(razorpayKeySecret, "RAZORPAY_KEY_SECRET");
+    const keyId = readEnvOrSecret(razorpayKeyId, "RAZORPAY_KEY_ID");
 
     if (!keySecret) {
       console.error("[functions] RAZORPAY_KEY_SECRET not configured");
@@ -353,7 +415,7 @@ async function verifyPaymentHandler(req, res) {
       .update(payload)
       .digest("hex");
 
-    if (expectedSignature !== razorpay_signature) {
+    if (!signaturesMatch(expectedSignature, razorpay_signature)) {
       console.error("[functions] Payment signature verification failed");
       const pendingPayment = await findPendingPaymentByRazorpayOrderId(razorpay_order_id, authUser.uid);
       if (pendingPayment) {

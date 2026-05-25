@@ -8,7 +8,7 @@ const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID;
 const FIREBASE_PROJECT_ID =
   import.meta.env.VITE_FIREBASE_PROJECT_ID || firebaseApp?.options?.projectId;
 const FIREBASE_FUNCTIONS_REGION =
-  import.meta.env.VITE_FIREBASE_FUNCTIONS_REGION || 'us-central1';
+  import.meta.env.VITE_FIREBASE_FUNCTIONS_REGION || 'asia-south1';
 
 const getDefaultFunctionUrl = (functionName) => {
   if (!FIREBASE_PROJECT_ID) return '';
@@ -18,13 +18,13 @@ const getDefaultFunctionUrl = (functionName) => {
 // These are REST endpoint URLs (NO secrets).
 const CREATE_ORDER_URL =
   import.meta.env.VITE_FIREBASE_CREATE_ORDER_URL ||
-  (import.meta.env.DEV ? '/api/create-order' : getDefaultFunctionUrl('createOrder'));
+  getDefaultFunctionUrl('createOrder');
 const VERIFY_PAYMENT_URL =
   import.meta.env.VITE_FIREBASE_VERIFY_PAYMENT_URL ||
-  (import.meta.env.DEV ? '/api/verify-payment' : getDefaultFunctionUrl('verifyPayment'));
+  getDefaultFunctionUrl('verifyPayment');
 const MARK_PAYMENT_FAILED_URL =
   import.meta.env.VITE_FIREBASE_MARK_PAYMENT_FAILED_URL ||
-  (import.meta.env.DEV ? '/api/mark-payment-failed' : getDefaultFunctionUrl('markPaymentFailed'));
+  getDefaultFunctionUrl('markPaymentFailed');
 
 
 
@@ -165,6 +165,11 @@ export const createRazorpayOrder = async (amountPaise, currency = 'INR', options
 
   const data = await response.json();
   if (!data?.order_id) throw new Error('Invalid order response');
+  if (data?.key_id && data.key_id !== RAZORPAY_KEY_ID) {
+    throw new Error(
+      'Razorpay key mismatch: Vercel VITE_RAZORPAY_KEY_ID must match Firebase Functions RAZORPAY_KEY_ID.'
+    );
+  }
 
   return data;
 };

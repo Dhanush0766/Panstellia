@@ -1,108 +1,57 @@
-# Firebase Razorpay Backend (Functions v2) - Panstellia
+# Firebase Razorpay Backend - Panstellia
 
-This repo uses **Firebase Functions v2 as the standalone backend** for Razorpay:
-- `create-order` (POST)
-- `verify-payment` (POST)
+This project uses Firebase Functions v2 as the only payment backend. Vercel serves the React/Vite app only.
 
-Frontend (Vite + React) is hosted separately (e.g., Vercel). It calls Functions via full REST URLs.
+## Functions
 
+- `createOrder` creates a Razorpay order and a pending Firestore order/payment record.
+- `verifyPayment` verifies the Razorpay signature server-side and marks the Firestore order/payment as paid.
+- `markPaymentFailed` marks abandoned or failed Razorpay orders as failed.
 
-## 1) Prerequisites
-- Firebase CLI installed
-- Node.js 20
+## Firebase Secrets
 
-## 2) Create/Select Firebase project
-```bash
-firebase login
-firebase projects:list
-firebase use <YOUR_FIREBASE_PROJECT_ID>
-```
-
-## 3) Initialize Functions (if not already)
-From repo root:
-```bash
-firebase init functions
-```
-- Choose **JavaScript**
-- Choose **ESLint** as you prefer
-- The CLI may generate a `functions/` folder; in this repo we already have one.
-
-## 4) Install dependencies for Functions
-From repo root:
-```bash
-npm install
-cd functions && npm install
-cd ..
-```
-
-## 5) Configure runtime environment variables (Secrets)
-Set Razorpay keys in Functions runtime. Never put these in frontend.
+Set Razorpay credentials in Firebase Secret Manager. The key id and key secret must be from the same Razorpay mode and key pair.
 
 ```bash
-firebase functions:config:set \
-  razorpay.key_id="<YOUR_RAZORPAY_KEY_ID>" \
-  razorpay.key_secret="<YOUR_RAZORPAY_KEY_SECRET>" \
-  cors.origin="https://<YOUR_VERCEL_SITE>.vercel.app"
-
+firebase functions:secrets:set RAZORPAY_KEY_ID
+firebase functions:secrets:set RAZORPAY_KEY_SECRET
 ```
 
-Then update code to read `functions.config()` OR use `firebase functions:secrets:set` (preferred).
+Use either both `rzp_test_*` credentials with Vercel `VITE_RAZORPAY_KEY_ID=rzp_test_*`, or both live credentials with `VITE_RAZORPAY_KEY_ID=rzp_live_*`. Do not mix test and live keys.
 
-### Preferred approach: Firebase Functions secrets
-Run (adjust names):
+## CORS
+
+The function allows the built-in production origins plus any comma-separated origins in `CORS_ORIGINS`.
+
+```env
+CORS_ORIGINS=https://panstellia.vercel.app,https://panstellia.com,https://www.panstellia.com
+```
+
+## Deploy
+
 ```bash
-firebase functions:secrets:set razorpay-key-id="<YOUR_RAZORPAY_KEY_ID>" razorpay-key-secret="<YOUR_RAZORPAY_KEY_SECRET>"
+firebase use panstellia-65653
+firebase deploy --only functions:createOrder,functions:verifyPayment,functions:markPaymentFailed
 ```
 
-> Note: Current `functions/index.js` reads `process.env.RAZORPAY_KEY_ID` / `process.env.RAZORPAY_KEY_SECRET` / `process.env.CORS_ORIGIN`.
->
-> Use either environment variable injection supported by your Firebase setup, or ensure your deployment sets those env vars.
+The functions deploy to `asia-south1` by default:
 
-## 6) Ensure CORS origin is correct
-Edit `functions/.env.example`:
-- `CORS_ORIGIN=https://<YOUR_NETLIFY_SITE>.netlify.app`
-
-For production, set it in your Functions environment.
-
-## 7) Deploy Functions v2
-Deploy only these endpoints:
-```bash
-firebase deploy --only functions:createOrder,functions:verifyPayment
+```text
+https://asia-south1-panstellia-65653.cloudfunctions.net/createOrder
+https://asia-south1-panstellia-65653.cloudfunctions.net/verifyPayment
+https://asia-south1-panstellia-65653.cloudfunctions.net/markPaymentFailed
 ```
 
-If you need to deploy all functions:
-```bash
-firebase deploy --only functions
-```
+## Vercel Environment
 
-After deployment, Firebase CLI prints URLs like:
-- `.../createOrder`
-- `.../verifyPayment`
+Set these in Vercel for Production and Preview, then redeploy the frontend:
 
-## 8) Configure frontend environment variables (Netlify)
-On Netlify, set:
-- `VITE_RAZORPAY_KEY_ID` (public checkout key)
-- `VITE_FIREBASE_CREATE_ORDER_URL` (full URL to `createOrder`)
-- `VITE_FIREBASE_VERIFY_PAYMENT_URL` (full URL to `verifyPayment`)
-
-Example:
 ```env
 VITE_RAZORPAY_KEY_ID=rzp_test_xxxxxxxxx
-VITE_FIREBASE_CREATE_ORDER_URL=https://<region>-<project>.cloudfunctions.net/createOrder
-VITE_FIREBASE_VERIFY_PAYMENT_URL=https://<region>-<project>.cloudfunctions.net/verifyPayment
+VITE_FIREBASE_FUNCTIONS_REGION=asia-south1
+VITE_FIREBASE_CREATE_ORDER_URL=https://asia-south1-panstellia-65653.cloudfunctions.net/createOrder
+VITE_FIREBASE_VERIFY_PAYMENT_URL=https://asia-south1-panstellia-65653.cloudfunctions.net/verifyPayment
+VITE_FIREBASE_MARK_PAYMENT_FAILED_URL=https://asia-south1-panstellia-65653.cloudfunctions.net/markPaymentFailed
 ```
 
-## 9) Test locally
-- Start Vite app
-- Ensure Functions are deployed or provide reachable URLs.
-
-> The frontend will not use mock payments. Verification is required by the backend.
-
-## 10) Security notes / production checklist
-- `RAZORPAY_KEY_SECRET` exists **only** in Functions runtime.
-- Frontend only uses `VITE_RAZORPAY_KEY_ID`.
-- `verify-payment` signature comparison uses constant-time equality.
-- CORS is restricted to your Vercel origin.
-
-- Errors return generic messages and do not leak internal stack traces.
-
+Never set `RAZORPAY_KEY_SECRET` in Vercel. It belongs only in Firebase Functions.
