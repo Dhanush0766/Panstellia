@@ -99,6 +99,16 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // ─── Customer Feedback Collection ────────────────────────────────────────
+    match /customerFeedback/{feedbackId} {
+      // Anyone can create feedback (no auth required)
+      allow create: if true;
+      // Only admins can read feedback
+      allow read: if isAdminUser();
+      // No updates or deletes allowed
+      allow update, delete: if false;
+    }
+
     // ─── Default: Deny Everything Else ──────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;
