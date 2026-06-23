@@ -5,7 +5,7 @@ import {
   Star, Heart, ShoppingBag, Truck, Shield, RefreshCw, 
   ChevronLeft, ChevronRight, Check, Plus, Minus, 
   Share2, Copy, MapPin, Calendar, Box, ShieldCheck, 
-  Award, Sparkles, Gift, Droplet, Archive, Feather, Eye, ZoomIn, ZoomOut, Maximize2, X, Banknote
+  Award, Sparkles, Gift, Droplet, Archive, Feather, Eye, ZoomIn, ZoomOut, Maximize2, X, Banknote, Bell
 } from 'lucide-react';
 import { useProducts } from '../context/ProductContext';
 import { useCart } from '../context/CartContext';
@@ -17,6 +17,7 @@ import ProductCard from '../components/UI/ProductCard';
 import OptimizedImage from '../components/UI/OptimizedImage';
 import SEOHelmet from '../utils/seoHelmet';
 import { getProductSchema } from '../utils/structuredData';
+import NotifyMeModal from '../components/UI/NotifyMeModal';
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -30,6 +31,7 @@ const ProductDetailPage = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [isAdding, setIsAdding] = useState(false);
   const [isBuyNowAdding, setIsBuyNowAdding] = useState(false);
+  const [isNotifyOpen, setIsNotifyOpen] = useState(false);
 
   // Gallery zoom & Lightbox state
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -610,14 +612,24 @@ const ProductDetailPage = () => {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <button
-                  onClick={handleAddToCart}
-                  disabled={isAdding}
-                  className="flex-1 btn-primary py-3 flex items-center justify-center font-bold tracking-wide shadow-md active:scale-[0.99] transition-transform"
-                >
-                  <ShoppingBag className="w-4.5 h-4.5 mr-2" />
-                  {isAdding ? 'Adding...' : 'Add to Cart'}
-                </button>
+                {stockStatus.label === 'Out of Stock' ? (
+                  <button
+                    onClick={() => setIsNotifyOpen(true)}
+                    className="flex-1 btn-primary py-3 flex items-center justify-center font-bold tracking-wide shadow-md bg-gradient-to-r from-gold-500 to-gold-600"
+                  >
+                    <Bell className="w-4.5 h-4.5 mr-2" />
+                    Notify Me
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={isAdding}
+                    className="flex-1 btn-primary py-3 flex items-center justify-center font-bold tracking-wide shadow-md"
+                  >
+                    <ShoppingBag className="w-4.5 h-4.5 mr-2" />
+                    {isAdding ? 'Adding...' : 'Add to Cart'}
+                  </button>
+                )}
 
                 <button
                   onClick={handleBuyNow}
@@ -1059,6 +1071,12 @@ const ProductDetailPage = () => {
         )}
       </AnimatePresence>
 
+      {/* Notify Me Modal */}
+      <NotifyMeModal
+        product={product}
+        isOpen={isNotifyOpen}
+        onClose={() => setIsNotifyOpen(false)}
+      />
     </div>
   );
 };

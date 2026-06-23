@@ -18,7 +18,10 @@ const ProductsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { products, loading } = useProducts();
 
-  const visibleProducts = products.filter((p) => (p.productStatus || 'available') === 'available');
+  const visibleProducts = useMemo(() => 
+    products.filter((p) => (p.productStatus || 'available') === 'available'),
+    [products]
+  );
 
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
@@ -219,7 +222,7 @@ const ProductsPage = () => {
     }
 
     setFilteredProducts(sorted);
-  }, [products, filters, searchQuery, visibleProducts]);
+  }, [filters, searchQuery, visibleProducts]);
 
   const handleFilterChange = (key, value) => {
     let newFilters = { ...filters };
