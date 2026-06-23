@@ -26,12 +26,15 @@ const OrdersPage = lazy(() => import('./pages/Orders'));
 const OrderSuccessPage = lazy(() => import('./pages/OrderSuccess'));
 const OrderDetailsPage = lazy(() => import('./pages/OrderDetails'));
 const ForgotPasswordPage = lazy(() => import('./pages/ForgotPassword'));
+const ProfilePage = lazy(() => import('./pages/Profile'));
 const AdminRouter = lazy(() => import('./pages/admin/index'));
 const AboutUsPage = lazy(() => import('./pages/AboutUs'));
+const CareersPage = lazy(() => import('./pages/Careers'));
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicy'));
 const TermsConditionsPage = lazy(() => import('./pages/TermsConditions'));
 const ShippingPolicyPage = lazy(() => import('./pages/ShippingPolicy'));
 const ElegantSparkPage = lazy(() => import('./pages/ElegantSpark'));
+const TrackOrderPage = lazy(() => import('./pages/TrackOrder'));
 // Added by teammate — custom 404 page
 const NotFoundPage = lazy(() => import('./pages/NotFound'));
 
@@ -99,6 +102,7 @@ function App() {
                         <Route path="cart" element={<CartPage />} />
                         <Route path="wishlist" element={<WishlistPage />} />
                         <Route path="about-us" element={<AboutUsPage />} />
+                        <Route path="careers" element={<CareersPage />} />
                         <Route path="privacy" element={<PrivacyPolicyPage />} />
                         <Route path="terms" element={<TermsConditionsPage />} />
                         <Route path="shipping" element={<ShippingPolicyPage />} />
@@ -129,10 +133,26 @@ function App() {
                           }
                         />
                         <Route
+                          path="order/:id/track"
+                          element={
+                            <ProtectedRoute>
+                              <TrackOrderPage />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
                           path="order-success"
                           element={
                             <ProtectedRoute>
                               <OrderSuccessPage />
+                            </ProtectedRoute>
+                          }
+                        />
+                        <Route
+                          path="profile"
+                          element={
+                            <ProtectedRoute>
+                              <ProfilePage />
                             </ProtectedRoute>
                           }
                         />
