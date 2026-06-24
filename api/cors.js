@@ -22,7 +22,12 @@ function getAllowedOrigins() {
 }
 
 function isOriginAllowed(origin) {
-  return !origin || getAllowedOrigins().has(origin);
+  if (!origin) return true;
+  
+  // Allow any vercel.app preview deployments dynamically
+  if (origin.endsWith('.vercel.app')) return true;
+
+  return getAllowedOrigins().has(origin);
 }
 
 export function handleCors(req, res) {
