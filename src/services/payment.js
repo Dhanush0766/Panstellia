@@ -5,26 +5,10 @@ import firebaseApp from './firebase';
 
 const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID;
 
-const FIREBASE_PROJECT_ID =
-  import.meta.env.VITE_FIREBASE_PROJECT_ID || firebaseApp?.options?.projectId;
-const FIREBASE_FUNCTIONS_REGION =
-  import.meta.env.VITE_FIREBASE_FUNCTIONS_REGION || 'asia-south1';
-
-const getDefaultFunctionUrl = (functionName) => {
-  if (!FIREBASE_PROJECT_ID) return '';
-  return `https://${FIREBASE_FUNCTIONS_REGION}-${FIREBASE_PROJECT_ID}.cloudfunctions.net/${functionName}`;
-};
-
-// These are REST endpoint URLs (NO secrets).
-const CREATE_ORDER_URL =
-  import.meta.env.VITE_FIREBASE_CREATE_ORDER_URL ||
-  getDefaultFunctionUrl('createOrder');
-const VERIFY_PAYMENT_URL =
-  import.meta.env.VITE_FIREBASE_VERIFY_PAYMENT_URL ||
-  getDefaultFunctionUrl('verifyPayment');
-const MARK_PAYMENT_FAILED_URL =
-  import.meta.env.VITE_FIREBASE_MARK_PAYMENT_FAILED_URL ||
-  getDefaultFunctionUrl('markPaymentFailed');
+// These are REST endpoint URLs pointing to Vercel Serverless Functions.
+const CREATE_ORDER_URL = '/api/createOrder';
+const VERIFY_PAYMENT_URL = '/api/verifyPayment';
+const MARK_PAYMENT_FAILED_URL = '/api/markPaymentFailed';
 
 
 
