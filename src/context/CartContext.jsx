@@ -26,7 +26,7 @@ export const CartProvider = ({ children }) => {
 
   // Load shipping settings from Firestore in real-time
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, 'shipping_settings', 'config'), async (snapshot) => {
+    const unsub = onSnapshot(doc(db, 'ShippingSettings', 'config'), async (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
         setShippingSettings({
@@ -38,7 +38,7 @@ export const CartProvider = ({ children }) => {
       } else {
         // Automatically create default settings if none exist
         try {
-          await setDoc(doc(db, 'shipping_settings', 'config'), {
+          await setDoc(doc(db, 'ShippingSettings', 'config'), {
             shippingEnabled: true,
             freeShippingEnabled: true,
             shippingCharge: 99,

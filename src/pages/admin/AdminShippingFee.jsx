@@ -25,7 +25,7 @@ export default function AdminShippingFee() {
     const loadData = async () => {
       setLoading(true);
       try {
-        const snap = await getDoc(doc(db, 'shipping_settings', 'config'));
+        const snap = await getDoc(doc(db, 'ShippingSettings', 'config'));
         if (snap.exists()) {
           const data = snap.data();
           setShippingSettings({
@@ -81,7 +81,7 @@ export default function AdminShippingFee() {
 
     setSaving(true);
     try {
-      const configRef = doc(db, 'shipping_settings', 'config');
+      const configRef = doc(db, 'ShippingSettings', 'config');
       const updatedData = {
         ...shippingSettings,
         updatedBy: user?.email || 'Admin',
@@ -113,7 +113,7 @@ export default function AdminShippingFee() {
     setSaving(true);
     try {
       const { data } = log;
-      const configRef = doc(db, 'shipping_settings', 'config');
+      const configRef = doc(db, 'ShippingSettings', 'config');
       const rollbackData = {
         shippingEnabled: data.shippingEnabled ?? true,
         freeShippingEnabled: data.freeShippingEnabled ?? true,
