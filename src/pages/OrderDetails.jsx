@@ -171,18 +171,23 @@ const OrderDetailsPage = () => {
     !isCancelled &&
     rawStatus.toLowerCase() !== 'delivered';
 
+  const isCodPending =
+    (order?.paymentMethod || '').toLowerCase() === 'cod' &&
+    !isCancelled &&
+    rawStatus.toLowerCase() !== 'delivered';
+
   // ── Pay Now handler ───────────────────────────────────────────────────────
   const handlePayNow = async () => {
     if (!order || !user) return;
     setActionLoading(true);
     try {
       const authToken = await user.getIdToken();
-      // The razorpay_order_id is stored on the order as `orderId` (the Razorpay order_id)
-      const razorpayOrderId = order.razorpay_order_id || order.orderId || '';
+      // Razorpay order ID is stored as `razorpayOrderId` on the document
+      const razorpayOrderId = order.razorpayOrderId || order.razorpay_order_id || '';
       const amountPaise = Math.round(Number(order.total || 0) * 100);
 
-      if (!razorpayOrderId) {
-        toast.error('Payment details not found. Please contact support.');
+      if (!razorpayOrderId || !razorpayOrderId.startsWith('order_')) {
+        toast.error('Payment details not found or invalid. Please contact support.');
         setActionLoading(false);
         return;
       }
@@ -434,31 +439,44 @@ const OrderDetailsPage = () => {
             )}
 
             {/* ── Pending Payment Notice + Actions ──────────────────────── */}
-            {isRazorpayPending && (
+            {(isRazorpayPending || isCodPending) && (
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
                 <div className="flex items-start gap-3 mb-4">
                   <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-semibold text-amber-800">Payment Pending</p>
-                    <p className="text-sm text-amber-600 mt-0.5">
-                      Your order is placed but payment has not been completed. You
-                      can complete payment now or cancel this order.
-                    </p>
+                    {isRazorpayPending ? (
+                      <>
+                        <p className="font-semibold text-amber-800">Payment Pending</p>
+                        <p className="text-sm text-amber-600 mt-0.5">
+                          Your order is placed but payment has not been completed. You
+                          can complete payment now or cancel this order.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="font-semibold text-amber-800">Cash on Delivery</p>
+                        <p className="text-sm text-amber-600 mt-0.5">
+                          You will pay at the time of delivery. You can cancel this order if you changed your mind.
+                        </p>
+                      </>
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-3">
-                  <button
-                    onClick={handlePayNow}
-                    disabled={actionLoading}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold-500 hover:bg-gold-600 text-white text-sm font-bold rounded-xl transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
-                  >
-                    {actionLoading ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <PayIcon className="w-4 h-4" />
-                    )}
-                    Pay Now
-                  </button>
+                  {isRazorpayPending && (
+                    <button
+                      onClick={handlePayNow}
+                      disabled={actionLoading}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold-500 hover:bg-gold-600 text-white text-sm font-bold rounded-xl transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
+                    >
+                      {actionLoading ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <PayIcon className="w-4 h-4" />
+                      )}
+                      Pay Now
+                    </button>
+                  )}
                   <button
                     onClick={handleCancelOrder}
                     disabled={actionLoading}
