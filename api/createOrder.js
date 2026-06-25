@@ -200,102 +200,51 @@ export default async function handler(req, res) {
       },
     });
 
-    // Run transaction to reserve stock and save order/payment
-    const transactionResult = await db.runTransaction(async (transaction) => {
-      const productDocs = [];
-      for (const item of orderItems) {
-        const productRef = db.collection("products").doc(item.id);
-        const productSnap = await transaction.get(productRef);
-        if (!productSnap.exists) {
-          throw new Error(`Product ${item.name} not found`);
-        }
-        productDocs.push({ ref: productRef, snap: productSnap, item });
-      }
+    // Save payment intent document (draft order) to Firestore
+    const paymentRef = db.collection("payments").doc();
 
-      const productUpdates = [];
-      for (const { ref, snap, item } of productDocs) {
-        const data = snap.data();
-        const stockQuantity = Number(data.stockQuantity ?? 0);
-        const reservedQuantity = Number(data.reservedQuantity ?? 0);
-        const availableQuantity = stockQuantity - reservedQuantity;
+    const commonOrderData = {
+      userId: authUser.uid,
+      orderId: orderNumber,
+      razorpayOrderId: order.id,
+      customerName: customerInfo.name,
+      customerEmail: customerInfo.email,
+      phone: customerInfo.phone,
+      items: orderItems,
+      subtotal: toNumber(totals.subtotal),
+      shipping: toNumber(totals.shipping),
+      tax: toNumber(totals.tax),
+      couponCode: totals.couponCode || null,
+      couponDiscount: totals.couponDiscount ? toNumber(totals.couponDiscount) : 0,
+      total: totals.total ? toNumber(totals.total) : amountNum / 100,
+      amount: amountNum,
+      amountPaid: amountNum / 100,
+      isPartialPayment: notes.is_partial === "true",
+      currency,
+      paymentMethod: "razorpay",
+      paymentStatus: "Pending",
+      status: "pending_payment",
+      address: addressInfo.address,
+      city: addressInfo.city,
+      state: addressInfo.state,
+      pincode: addressInfo.pincode,
+      apartment: addressInfo.apartment || "",
+      landmark: addressInfo.landmark || "",
+      country: addressInfo.country || "",
+      addressLabel: addressInfo.addressLabel || "",
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    };
 
-        if (availableQuantity < item.quantity) {
-          throw new Error(`Insufficient stock for "${item.name}". Only ${availableQuantity} available.`);
-        }
-
-        const newReserved = reservedQuantity + item.quantity;
-        const newAvailable = stockQuantity - newReserved;
-
-        let inventoryStatus = 'in_stock';
-        if (stockQuantity <= 0) {
-          inventoryStatus = 'out_of_stock';
-        } else if (stockQuantity <= Number(data.reorderThreshold ?? 5)) {
-          inventoryStatus = 'low_stock';
-        }
-
-        productUpdates.push({
-          ref,
-          data: {
-            reservedQuantity: newReserved,
-            availableQuantity: newAvailable,
-            inventoryStatus,
-            lastStockUpdate: new Date().toISOString(),
-            stockUpdatedBy: `System (Reservation #${orderNumber})`,
-          }
-        });
-      }
-
-      for (const update of productUpdates) {
-        transaction.update(update.ref, update.data);
-      }
-
-      const orderRef = db.collection("orders").doc();
-      const paymentRef = db.collection("payments").doc();
-
-      const commonOrderData = {
-        userId: authUser.uid,
-        orderId: orderNumber,
-        razorpayOrderId: order.id,
-        customerName: customerInfo.name,
-        customerEmail: customerInfo.email,
-        phone: customerInfo.phone,
-        items: orderItems,
-        subtotal: toNumber(totals.subtotal),
-        shipping: toNumber(totals.shipping),
-        tax: toNumber(totals.tax),
-        couponCode: totals.couponCode || null,
-        couponDiscount: totals.couponDiscount ? toNumber(totals.couponDiscount) : 0,
-        total: totals.total ? toNumber(totals.total) : amountNum / 100,
-        amount: amountNum,
-        amountPaid: amountNum / 100,
-        isPartialPayment: notes.is_partial === "true",
-        currency,
-        paymentMethod: "razorpay",
-        paymentStatus: "Pending",
-        status: "pending_payment",
-        address: addressInfo.address,
-        city: addressInfo.city,
-        state: addressInfo.state,
-        pincode: addressInfo.pincode,
-        apartment: addressInfo.apartment || "",
-        landmark: addressInfo.landmark || "",
-        country: addressInfo.country || "",
-        addressLabel: addressInfo.addressLabel || "",
-        createdAt: FieldValue.serverTimestamp(),
-        updatedAt: FieldValue.serverTimestamp(),
-      };
-
-      transaction.set(orderRef, commonOrderData);
-      transaction.set(paymentRef, {
-        ...commonOrderData,
-        orderDocId: orderRef.id,
-      });
-
-      return {
-        orderDocId: orderRef.id,
-        paymentDocId: paymentRef.id,
-      };
+    await paymentRef.set({
+      ...commonOrderData,
+      orderDocId: null, // order not created yet
     });
+
+    const transactionResult = {
+      orderDocId: null,
+      paymentDocId: paymentRef.id,
+    };
 
     return res.status(200).json({
       order_id: order.id,

@@ -39,6 +39,12 @@ export function getStatusConfig(rawStatus) {
   if (s === 'refunded') {
     return { badge: 'bg-teal-100 text-teal-700 border border-teal-200', dotColor: '#14b8a6', label: 'Refunded' };
   }
+  if (s === 'pending_payment') {
+    return { badge: 'bg-amber-100 text-amber-700 border border-amber-200', dotColor: '#f59e0b', label: 'Payment Pending' };
+  }
+  if (s === 'payment_failed') {
+    return { badge: 'bg-red-100 text-red-700 border border-red-200', dotColor: '#ef4444', label: 'Payment Failed' };
+  }
   const step = STATUS_PIPELINE.find(p => p.key === s) || STATUS_PIPELINE[0];
   return {
     badge: `${step.color.bg} ${step.color.text} border ${step.color.border}`,
@@ -69,10 +75,14 @@ export function MiniProgressBar({ status }) {
   const normalised = normalizeStatus(status);
   const cancelled = normalised === 'cancelled';
   const refunded = normalised === 'refunded';
-  const activeIndex = (cancelled || refunded) ? -1 : getStatusIndex(normalised);
+  const pendingPayment = normalised === 'pending_payment';
+  const paymentFailed = normalised === 'payment_failed';
+  const activeIndex = (cancelled || refunded || pendingPayment || paymentFailed) ? -1 : getStatusIndex(normalised);
 
   if (cancelled) return <p className="mt-2 text-xs text-red-500 font-medium">Order Cancelled</p>;
-  if (refunded) return <p className="mt-2 text-xs text-teal-600 font-medium">Order Refunded</p>;
+  if (refunded) return <p className="mt-2 text-xs text-teal-650 font-medium">Order Refunded</p>;
+  if (pendingPayment) return <p className="mt-2 text-xs text-amber-600 font-medium">Payment Pending</p>;
+  if (paymentFailed) return <p className="mt-2 text-xs text-red-650 font-medium">Payment Failed</p>;
 
   const totalSteps = ORDER_STEPS.length;
   return (
@@ -156,7 +166,9 @@ export default function OrderTimeline({ status, statusHistory = [] }) {
   const normalised = normalizeStatus(status);
   const cancelled = normalised === 'cancelled';
   const refunded = normalised === 'refunded';
-  const activeIndex = (cancelled || refunded) ? -1 : getStatusIndex(normalised);
+  const pendingPayment = normalised === 'pending_payment';
+  const paymentFailed = normalised === 'payment_failed';
+  const activeIndex = (cancelled || refunded || pendingPayment || paymentFailed) ? -1 : getStatusIndex(normalised);
 
   return (
     <div className="w-full">
@@ -290,6 +302,22 @@ export default function OrderTimeline({ status, statusHistory = [] }) {
         <div className="mt-4 flex items-center gap-2 text-sm text-teal-600 font-medium bg-teal-50 rounded-xl p-3 border border-teal-200">
           <RefreshCw className="w-4 h-4 flex-shrink-0" />
           This order has been refunded
+        </div>
+      )}
+
+      {/* ══ Pending payment notice ═════════════════════════════════════════ */}
+      {pendingPayment && (
+        <div className="mt-4 flex items-center gap-2 text-sm text-amber-600 font-medium bg-amber-50 rounded-xl p-3 border border-amber-200">
+          <Package className="w-4 h-4 flex-shrink-0" />
+          This order is pending payment confirmation
+        </div>
+      )}
+
+      {/* ══ Payment failed notice ══════════════════════════════════════════ */}
+      {paymentFailed && (
+        <div className="mt-4 flex items-center gap-2 text-sm text-red-500 font-medium bg-red-50 rounded-xl p-3 border border-red-200">
+          <XCircle className="w-4 h-4 flex-shrink-0" />
+          This order payment failed
         </div>
       )}
     </div>

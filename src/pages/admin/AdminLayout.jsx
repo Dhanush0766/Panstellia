@@ -300,19 +300,18 @@ export default function AdminLayout({ children }) {
       {/* Desktop Sidebar */}
       <aside className={`
         hidden lg:flex flex-col flex-shrink-0 bg-white border-r border-luxury-200
-        shadow-sm transition-all duration-300 ease-in-out h-screen overflow-hidden
+        shadow-sm transition-all duration-300 ease-in-out h-screen relative
         ${collapsed ? 'w-16' : 'w-60'}
       `}>
         <SidebarContent />
         {/* Collapse Toggle */}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="absolute left-0 bottom-24 translate-x-[calc(100%+0.75rem)] lg:translate-x-0 lg:left-auto lg:bottom-auto lg:top-1/2 lg:-translate-y-1/2 lg:right-0 lg:translate-x-1/2
-            z-10 w-6 h-6 rounded-full bg-white border border-luxury-200 shadow-md flex items-center justify-center
+          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2
+            z-50 w-6 h-6 rounded-full bg-white border border-luxury-200 shadow-md flex items-center justify-center
             text-luxury-500 hover:text-luxury-800 hover:border-luxury-300 transition-all
             hidden lg:flex
           "
-          style={{ position: 'fixed', left: collapsed ? '52px' : '228px', top: '50%', transform: 'translateY(-50%)' }}
         >
           {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
         </button>

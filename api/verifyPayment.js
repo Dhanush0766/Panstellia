@@ -167,14 +167,14 @@ export default async function handler(req, res) {
         }
       }
 
-      // Deduct stock for each item
+      // Deduct stock for each item (since we don't pre-reserve)
       for (const { ref, snap, item } of productDocs) {
         const prodData = snap.data();
         const oldStock = Number(prodData.stockQuantity ?? 0);
         const oldReserved = Number(prodData.reservedQuantity ?? 0);
 
         const newStock = Math.max(0, oldStock - item.quantity);
-        const newReserved = Math.max(0, oldReserved - item.quantity);
+        const newReserved = oldReserved; // reserved stock is not touched because we didn't pre-reserve
         const newAvailable = newStock - newReserved;
 
         let inventoryStatus = 'in_stock';
@@ -234,7 +234,56 @@ export default async function handler(req, res) {
         updatedAt: FieldValue.serverTimestamp(),
       };
 
-      transaction.update(paymentDocRef, paidUpdate);
+      // Create order document in "orders" collection if it doesn't exist
+      let orderDocId = pData.orderDocId;
+      if (!orderDocId) {
+        const orderRef = db.collection("orders").doc();
+        orderDocId = orderRef.id;
+
+        const orderData = {
+          userId: pData.userId,
+          orderId: pData.orderId,
+          razorpayOrderId: pData.razorpayOrderId,
+          customerName: pData.customerName,
+          customerEmail: pData.customerEmail,
+          phone: pData.phone,
+          items: pData.items,
+          subtotal: pData.subtotal,
+          shipping: pData.shipping,
+          tax: pData.tax,
+          couponCode: pData.couponCode || null,
+          couponDiscount: pData.couponDiscount || 0,
+          total: pData.total,
+          amount: pData.amount,
+          amountPaid: pData.amountPaid,
+          isPartialPayment: pData.isPartialPayment === true,
+          currency: pData.currency || "INR",
+          paymentMethod: "razorpay",
+          paymentStatus: paidUpdate.paymentStatus,
+          status: paidUpdate.status,
+          address: pData.address,
+          city: pData.city,
+          state: pData.state,
+          pincode: pData.pincode,
+          apartment: pData.apartment || "",
+          landmark: pData.landmark || "",
+          country: pData.country || "",
+          addressLabel: pData.addressLabel || "",
+          createdAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        };
+
+        transaction.set(orderRef, orderData);
+        
+        transaction.update(paymentDocRef, {
+          ...paidUpdate,
+          orderDocId: orderDocId,
+        });
+      } else {
+        // Fallback for backward compatibility (if order document already exists)
+        transaction.update(paymentDocRef, paidUpdate);
+        transaction.update(db.collection("orders").doc(orderDocId), paidUpdate);
+      }
 
       // Update coupon uses if applied
       if (pData.couponCode) {
@@ -249,25 +298,21 @@ export default async function handler(req, res) {
         }
       }
 
-      if (pData.orderDocId) {
-        transaction.update(db.collection("orders").doc(pData.orderDocId), paidUpdate);
-
-        // Order notification write inside transaction
-        const orderNotifRef = db.collection("admin_notifications").doc(`order-${pData.orderId}`);
-        transaction.set(orderNotifRef, {
-          title: "New Order Placed",
-          message: `Order #${pData.orderId} was placed by ${pData.customerName || "Customer"} for ₹${(Number(pData.total) || 0).toLocaleString()}`,
-          type: "order",
-          targetId: pData.orderDocId,
-          read: false,
-          createdAt: new Date().toISOString(),
-        });
-      }
+      // Order notification write inside transaction
+      const orderNotifRef = db.collection("admin_notifications").doc(`order-${pData.orderId}`);
+      transaction.set(orderNotifRef, {
+        title: "New Order Placed",
+        message: `Order #${pData.orderId} was placed by ${pData.customerName || "Customer"} for ₹${(Number(pData.total) || 0).toLocaleString()}`,
+        type: "order",
+        targetId: orderDocId,
+        read: false,
+        createdAt: new Date().toISOString(),
+      });
 
       return {
         alreadyProcessed: false,
         order_number: pData.orderId,
-        local_order_id: pData.orderDocId,
+        local_order_id: orderDocId,
       };
     });
 

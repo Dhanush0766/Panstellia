@@ -137,8 +137,13 @@ const LEGACY_MAP = {
   'payment confirmed': 'processing',
   'order_placed': 'processing',
   'payment_confirmed': 'processing',
-  'pending': 'processing',
-  'pending_payment': 'processing',
+  'pending': 'pending_payment',
+  'pending_payment': 'pending_payment',
+  'payment_pending': 'pending_payment',
+  'payment pending': 'pending_payment',
+  'failed': 'payment_failed',
+  'payment_failed': 'payment_failed',
+  'payment failed': 'payment_failed',
   'confirmed': 'processing',
   'out_for_delivery': 'out of delivery',
   'out for delivery': 'out of delivery',
@@ -160,6 +165,8 @@ export function normalizeStatus(raw) {
   if (found) return found.key;
   if (lower === 'cancelled') return 'cancelled';
   if (lower === 'refunded') return 'refunded';
+  if (lower === 'pending_payment') return 'pending_payment';
+  if (lower === 'payment_failed') return 'payment_failed';
   return 'processing';
 }
 
@@ -170,16 +177,32 @@ export function getStatusStep(raw) {
   const key = normalizeStatus(raw);
   if (key === 'cancelled') return TERMINAL_STATUSES.cancelled;
   if (key === 'refunded') return TERMINAL_STATUSES.refunded;
+  if (key === 'pending_payment') {
+    return {
+      key: 'pending_payment',
+      label: 'Payment Pending',
+      icon: Package,
+      color: { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-200', dot: '#f59e0b', circle: '#f59e0b' },
+    };
+  }
+  if (key === 'payment_failed') {
+    return {
+      key: 'payment_failed',
+      label: 'Payment Failed',
+      icon: XCircle,
+      color: { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-200', dot: '#ef4444', circle: '#ef4444' },
+    };
+  }
   return STATUS_PIPELINE.find(s => s.key === key) || STATUS_PIPELINE[0];
 }
 
 /**
  * Get the 0-based index in the pipeline.
- * Returns -1 for terminal statuses (cancelled/refunded).
+ * Returns -1 for terminal/special statuses.
  */
 export function getStatusIndex(raw) {
   const key = normalizeStatus(raw);
-  if (key === 'cancelled' || key === 'refunded') return -1;
+  if (key === 'cancelled' || key === 'refunded' || key === 'pending_payment' || key === 'payment_failed') return -1;
   return STATUS_PIPELINE.findIndex(s => s.key === key);
 }
 

@@ -495,7 +495,8 @@ const CheckoutPage = () => {
               total: finalTotal,
               items: cartItemsSnapshot,
               status: 'processing',
-              createdAt: new Date().toISOString(),
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(),
               paymentMethod,
               paymentStatus: 'Pending',
               address: formData.address,
@@ -637,54 +638,7 @@ const CheckoutPage = () => {
         throw new Error('Minimum order amount is ₹1');
       }
 
-      // 1. Reserve stock client-side first
-      await runTransaction(db, async (transaction) => {
-        const productDocs = [];
-        for (const item of cartItems) {
-          const productRef = doc(db, 'products', item.id);
-          const productSnap = await transaction.get(productRef);
-          if (!productSnap.exists()) {
-            throw new Error(`Product "${item.name}" not found.`);
-          }
-          productDocs.push({ ref: productRef, snap: productSnap, item });
-        }
 
-        // Validate stock availability
-        for (const { snap, item } of productDocs) {
-          const pData = snap.data();
-          const stockQuantity = Number(pData.stockQuantity ?? 0);
-          const reservedQuantity = Number(pData.reservedQuantity ?? 0);
-          const available = stockQuantity - reservedQuantity;
-          if (available < item.quantity) {
-            throw new Error(`Insufficient stock for "${item.name}". Only ${available} available.`);
-          }
-        }
-
-        // Reserve stock
-        for (const { ref, snap, item } of productDocs) {
-          const pData = snap.data();
-          const oldStock = Number(pData.stockQuantity ?? 0);
-          const oldReserved = Number(pData.reservedQuantity ?? 0);
-          const newReserved = oldReserved + item.quantity;
-          const newAvailable = oldStock - newReserved;
-
-          let inventoryStatus = 'in_stock';
-          if (oldStock <= 0) {
-            inventoryStatus = 'out_of_stock';
-          } else if (oldStock <= Number(pData.reorderThreshold ?? 5)) {
-            inventoryStatus = 'low_stock';
-          }
-
-          transaction.update(ref, {
-            reservedQuantity: newReserved,
-            availableQuantity: newAvailable,
-            inventoryStatus,
-            lastStockUpdate: new Date().toISOString(),
-            stockUpdatedBy: 'System (Razorpay Reservation)',
-          });
-        }
-      });
-      hasReservedStock = true;
 
       // 2. Create the order on the server
       const orderData = await createRazorpayOrder(amountInPaise, 'INR', {
@@ -834,7 +788,6 @@ const CheckoutPage = () => {
             }
           } catch (error) {
             console.error('Payment verification error:', error);
-            await rollbackReservations(cartItemsSnapshot);
             await markCurrentPaymentFailed(error.message || 'Payment verification failed', response.razorpay_payment_id);
             toast.error('Payment verification failed. Please contact support.', {
               position: 'bottom-right',
@@ -842,7 +795,6 @@ const CheckoutPage = () => {
           }
         },
         onFailure: async (response) => {
-          await rollbackReservations(cartItemsSnapshot);
           const paymentId = response?.error?.metadata?.payment_id;
           const reason = response?.error?.description || response?.error?.reason || 'Payment failed';
           await markCurrentPaymentFailed(reason, paymentId);
@@ -851,7 +803,6 @@ const CheckoutPage = () => {
           });
         },
         onDismiss: async () => {
-          await rollbackReservations(cartItemsSnapshot);
           await markCurrentPaymentFailed('Payment cancelled by customer');
           toast.info('Payment cancelled', {
             position: 'bottom-right',
@@ -862,9 +813,6 @@ const CheckoutPage = () => {
       await openCheckout(razorpayOptions);
     } catch (error) {
       console.error('Payment error:', error);
-      if (hasReservedStock) {
-        await rollbackReservations(cartItemsSnapshot);
-      }
       toast.error(error.message || 'Payment failed', {
         position: 'bottom-right',
       });

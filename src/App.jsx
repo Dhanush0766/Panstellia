@@ -159,17 +159,17 @@ function App() {
                             </ProtectedRoute>
                           }
                         />
-
-                        {/* Admin Routes (admin only) */}
-                        <Route
-                          path="admin/*"
-                          element={
-                            <AdminRoute>
-                              <AdminRouter />
-                            </AdminRoute>
-                          }
-                        />
                       </Route>
+
+                      {/* Admin Routes (admin only) - outside Layout to avoid storefront navbar/footer rendering inside admin console */}
+                      <Route
+                        path="admin/*"
+                        element={
+                          <AdminRoute>
+                            <AdminRouter />
+                          </AdminRoute>
+                        }
+                      />
 
                       {/* Catch all — custom 404 page */}
                       <Route path="*" element={<NotFoundPage />} />
