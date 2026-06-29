@@ -13,7 +13,7 @@ export const DEFAULT_HOMEPAGE_LAYOUT = {
       order: 0,
       slides: [
         {
-          image: "https://i.ibb.co/wFKPsvF3/file-0000000067f871faa8219b12c171e65f.png",
+          image: "https://res.cloudinary.com/omoikkzf/image/upload/v1782467387/file-0000000067f871faa8219b12c171e65f_gqejh1.png",
           title: "Wear Your Story",
           subtitle: "Handcrafted luxury necklaces for every occasion",
           ctaText: "Shop Now",
@@ -101,7 +101,7 @@ export const DEFAULT_HOMEPAGE_LAYOUT = {
       ctaText: "View Collection",
       ctaLink: "/products?category=Lux%20Wear",
       images: [
-        "https://i.ibb.co/wFKPsvF3/file-0000000067f871faa8219b12c171e65f.png",
+        "https://res.cloudinary.com/omoikkzf/image/upload/v1782467387/file-0000000067f871faa8219b12c171e65f_gqejh1.png",
         "https://i.ibb.co/v6D0LrQG/file-0000000035cc71fa963321ed9c5ee32f.png",
         "https://i.ibb.co/HfHynYrb/file-00000000501871fabeb3ad48399d23bd.png",
         "https://i.ibb.co/4gRy3WYW/Use-AI-Image-May-19-2026-13-21-30.png",

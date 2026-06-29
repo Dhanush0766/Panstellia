@@ -56,9 +56,9 @@ export default function AdminHomepage() {
   const handleMove = (index, direction) => {
     const updated = [...sections];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    
+
     if (targetIndex < 0 || targetIndex >= updated.length) return;
-    
+
     // Swap
     const temp = updated[index];
     updated[index] = updated[targetIndex];
@@ -133,10 +133,8 @@ export default function AdminHomepage() {
 
   const handleSaveSectionEdits = () => {
     const updated = [...sections];
-    updated[editingSection.index] = {
-      ...editingSection,
-      index: undefined // remove temporary key
-    };
+    const { index, ...cleanSection } = editingSection;
+    updated[index] = cleanSection;
     setSections(updated);
     setEditingSection(null);
     toast.success('Section configured locally. Remember to click Save Layout to publish!');
@@ -223,22 +221,20 @@ export default function AdminHomepage() {
       <div className="flex border-b border-luxury-200 mb-8 bg-white p-1 rounded-xl shadow-sm max-w-sm">
         <button
           onClick={() => setActiveTab('layout')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all duration-200 ${
-            activeTab === 'layout'
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all duration-200 ${activeTab === 'layout'
               ? 'bg-gold-500 text-white shadow-sm'
               : 'text-luxury-600 hover:text-luxury-900 hover:bg-luxury-50'
-          }`}
+            }`}
         >
           <Layout className="w-4 h-4" />
           Layout Reorder
         </button>
         <button
           onClick={() => setActiveTab('history')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all duration-200 ${
-            activeTab === 'history'
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all duration-200 ${activeTab === 'history'
               ? 'bg-gold-500 text-white shadow-sm'
               : 'text-luxury-600 hover:text-luxury-900 hover:bg-luxury-50'
-          }`}
+            }`}
         >
           <RotateCcw className="w-4 h-4" />
           Layout History
@@ -279,9 +275,8 @@ export default function AdminHomepage() {
               {sections.map((sec, index) => (
                 <div
                   key={sec.id || sec.type}
-                  className={`flex items-center justify-between p-4 border rounded-xl bg-white shadow-sm transition-all ${
-                    sec.enabled ? 'border-luxury-200' : 'border-dashed border-luxury-200 bg-luxury-50/50 opacity-70'
-                  }`}
+                  className={`flex items-center justify-between p-4 border rounded-xl bg-white shadow-sm transition-all ${sec.enabled ? 'border-luxury-200' : 'border-dashed border-luxury-200 bg-luxury-50/50 opacity-70'
+                    }`}
                 >
                   <div className="flex items-center gap-4">
                     {/* Up/Down buttons */}
@@ -330,11 +325,10 @@ export default function AdminHomepage() {
                     </button>
                     <button
                       onClick={() => handleToggleEnable(index)}
-                      className={`p-2 rounded-lg border ${
-                        sec.enabled 
-                          ? 'border-luxury-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200' 
+                      className={`p-2 rounded-lg border ${sec.enabled
+                          ? 'border-luxury-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200'
                           : 'border-gold-300 bg-gold-50 hover:bg-gold-100 text-gold-700'
-                      }`}
+                        }`}
                       title={sec.enabled ? "Disable Section" : "Enable Section"}
                     >
                       {sec.enabled ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
