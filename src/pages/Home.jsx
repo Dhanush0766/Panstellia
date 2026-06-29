@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  Sparkles, ArrowRight, Star, Truck, Shield, RefreshCw, ChevronLeft, ChevronRight, 
-  BadgePercent, Gift, Home, Store, Gem, CircleDot, Crown, Diamond, Heart, Search 
+import {
+  Sparkles, ArrowRight, Star, Truck, Shield, RefreshCw, ChevronLeft, ChevronRight,
+  BadgePercent, Gift, Home, Store, Gem, CircleDot, Crown, Diamond, Heart, Search
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useProducts } from '../context/ProductContext';
@@ -20,7 +20,7 @@ import { db } from '../services/firebase';
 import { useCart } from '../context/CartContext';
 
 const ICON_MAP = {
-  Sparkles, ArrowRight, Star, Truck, Shield, RefreshCw, ChevronLeft, ChevronRight, 
+  Sparkles, ArrowRight, Star, Truck, Shield, RefreshCw, ChevronLeft, ChevronRight,
   BadgePercent, Gift, Home, Store, Gem, CircleDot, Crown, Diamond, Heart, Search
 };
 
@@ -42,7 +42,7 @@ const HomePage = () => {
   const [hideEmptyCollections, setHideEmptyCollections] = useState(false);
 
   const RAW_HERO_IMAGES = [
-    'https://i.ibb.co/wFKPsvF3/file-0000000067f871faa8219b12c171e65f.png',
+    'https://res.cloudinary.com/omoikkzf/image/upload/v1782467387/file-0000000067f871faa8219b12c171e65f_gqejh1.png',
     'https://i.ibb.co/FbBwVw0x/file-000000001d907208abea67f9c539d069.png',
     'https://i.ibb.co/HTxTW4Mc/file-00000000f23871fabbbf324fd6b04d95.png',
     'https://i.ibb.co/tM3wvGWN/file-00000000996072079f2b1c3a294c96b1.png',
@@ -53,7 +53,7 @@ const HomePage = () => {
   );
 
   const RAW_COLLECTION_IMAGES = [
-    'https://i.ibb.co/wFKPsvF3/file-0000000067f871faa8219b12c171e65f.png',
+    'https://res.cloudinary.com/omoikkzf/image/upload/v1782467387/file-0000000067f871faa8219b12c171e65f_gqejh1.png',
     'https://i.ibb.co/v6D0LrQG/file-0000000035cc71fa963321ed9c5ee32f.png',
     'https://i.ibb.co/HfHynYrb/file-00000000501871fabeb3ad48399d23bd.png',
     'https://i.ibb.co/4gRy3WYW/Use-AI-Image-May-19-2026-13-21-30.png',
@@ -72,7 +72,7 @@ const HomePage = () => {
     }, (error) => {
       console.error("Error listening to homepage layout:", error);
     });
-    
+
     const unsubFilters = onSnapshot(doc(db, 'system_settings', 'filters'), (snapshot) => {
       if (snapshot.exists()) {
         setHideEmptyCollections(snapshot.data().hideEmptyCollections || false);
@@ -89,18 +89,18 @@ const HomePage = () => {
 
   const activeSections = layout?.sections
     ? [...layout.sections]
-        .filter((sec) => {
-          if (sec.enabled === false) return false;
-          const now = new Date();
-          if (sec.startDate) {
-            if (new Date(sec.startDate) > now) return false;
-          }
-          if (sec.endDate) {
-            if (new Date(sec.endDate) < now) return false;
-          }
-          return true;
-        })
-        .sort((a, b) => (a.order || 0) - (b.order || 0))
+      .filter((sec) => {
+        if (sec.enabled === false) return false;
+        const now = new Date();
+        if (sec.startDate) {
+          if (new Date(sec.startDate) > now) return false;
+        }
+        if (sec.endDate) {
+          if (new Date(sec.endDate) < now) return false;
+        }
+        return true;
+      })
+      .sort((a, b) => (a.order || 0) - (b.order || 0))
     : null;
 
   const slidesCount = activeSections?.find(s => s.type === 'hero')?.slides?.length || heroImages.length;
@@ -154,8 +154,8 @@ const HomePage = () => {
       description: !shippingSettings.shippingEnabled
         ? 'Free shipping on all orders'
         : shippingSettings.freeShippingEnabled
-        ? `On orders above ₹${shippingSettings.freeShippingThreshold}`
-        : `Standard fee: ₹${shippingSettings.shippingCharge}`
+          ? `On orders above ₹${shippingSettings.freeShippingThreshold}`
+          : `Standard fee: ₹${shippingSettings.shippingCharge}`
     },
     {
       icon: Shield,
@@ -239,8 +239,8 @@ const HomePage = () => {
   const marqueeFreeShippingText = !shippingSettings.shippingEnabled
     ? 'Free Shipping on all orders'
     : shippingSettings.freeShippingEnabled
-    ? `Free Shipping on ₹${shippingSettings.freeShippingThreshold}+`
-    : `Flat Shipping ₹${shippingSettings.shippingCharge}`;
+      ? `Free Shipping on ₹${shippingSettings.freeShippingThreshold}+`
+      : `Flat Shipping ₹${shippingSettings.shippingCharge}`;
   const marqueeText = `⭐ 4.6/5 Rating  |  2,000+ Happy Customers  |  ${marqueeFreeShippingText}  |  easy 3 -4 days return  |  handcrafted in korea  |  `;
 
   // Section Renderers
@@ -264,19 +264,19 @@ const HomePage = () => {
                 alt={slide.title || `Featured Necklace ${index + 1}`}
                 priority={index === 0}
                 className="absolute inset-0 w-full h-full"
-                imgClassName="object-cover object-right"
+                imgClassName="object-cover object-center"
               />
             </motion.div>
           ))}
           <div className="absolute inset-0 bg-gradient-to-r from-luxury-900/90 via-luxury-900/50 to-transparent z-10" />
         </div>
-        
+
         {/* Hero Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 w-full">
           {slides.map((slide, index) => {
             if (index !== currentHeroImageIndex % slides.length) return null;
             return (
-              <motion.div 
+              <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -320,7 +320,7 @@ const HomePage = () => {
             {items.map((item, index) => {
               const IconComponent = ICON_MAP[item.icon] || Sparkles;
               return (
-                <motion.div 
+                <motion.div
                   key={index}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -421,7 +421,7 @@ const HomePage = () => {
             <h2 className="font-serif text-3xl md:text-4xl font-bold text-luxury-900">{sec.title || "Shop by Collection"}</h2>
             <p className="mt-4 text-luxury-600 text-sm md:text-base">{sec.description || "Find the perfect piece for every occasion"}</p>
           </div>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
             {list.filter(catName => {
               const count = products.filter(p => p.category === catName).length;
@@ -446,7 +446,7 @@ const HomePage = () => {
                       className="w-full h-full transform group-hover:scale-110 transition-transform duration-500 ease-out"
                     />
                     <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-all duration-300" />
-                    
+
                     {/* Category count badge */}
                     <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-luxury-900 text-[10px] font-bold px-2 py-0.5 rounded-full z-10 shadow-sm">
                       {count} items
@@ -496,7 +496,7 @@ const HomePage = () => {
               ))}
             </div>
           ) : (
-            <motion.div 
+            <motion.div
               variants={bestsellersContainerVariants}
               initial="hidden"
               whileInView="visible"
@@ -554,8 +554,8 @@ const HomePage = () => {
                 {sec.description || "Get upto 25% off on our Premium collection."}
               </p>
               {sec.ctaText && sec.ctaLink && (
-                <Link 
-                  to={sec.ctaLink} 
+                <Link
+                  to={sec.ctaLink}
                   className="mt-5 sm:mt-6 inline-flex items-center px-5 sm:px-6 py-2.5 sm:py-3 bg-white text-gold-600 rounded-lg font-semibold hover:bg-luxury-50 transition-colors shadow-lg text-sm sm:text-base"
                 >
                   {sec.ctaText}
@@ -563,7 +563,7 @@ const HomePage = () => {
                 </Link>
               )}
             </div>
-            
+
             <div className="flex items-center justify-center relative w-full aspect-[4/3] mt-6 md:mt-0">
               <div className="relative w-full h-full overflow-hidden rounded-xl shadow-2xl bg-white">
                 {images.map((img, index) => (
@@ -583,7 +583,7 @@ const HomePage = () => {
                     />
                   </motion.div>
                 ))}
-                
+
                 {/* Navigation Buttons */}
                 <button
                   onClick={() => setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)}
@@ -599,18 +599,17 @@ const HomePage = () => {
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
-                
+
                 {/* Dot Indicators */}
                 <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10 bg-black/20 p-1.5 rounded-full backdrop-blur-sm">
                   {images.map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentImageIndex(index)}
-                      className={`w-2 h-2 rounded-full transition-all ${
-                        index === currentImageIndex % images.length
+                      className={`w-2 h-2 rounded-full transition-all ${index === currentImageIndex % images.length
                           ? 'bg-white w-6'
                           : 'bg-white/50 hover:bg-white'
-                      }`}
+                        }`}
                       aria-label={`Go to slide ${index + 1}`}
                     />
                   ))}
@@ -680,7 +679,7 @@ const HomePage = () => {
   if (activeSections && activeSections.length > 0) {
     return (
       <div className="min-h-screen bg-luxury-50">
-        <SEOHelmet 
+        <SEOHelmet
           title="Panstellia | Luxury Necklace Jewelry Collections"
           description="Discover exquisite necklace jewelry collections from Panstellia. Premium Luxe Ring, Royal Braces, Elite Series, and Piercings pieces for weddings, parties, and everyday elegance."
           keywords="luxury necklaces, luxe ring necklaces, royal braces necklaces, elite series jewelry, piercing jewelry, handcrafted necklaces, jewelry store"
@@ -688,7 +687,7 @@ const HomePage = () => {
           structuredData={getOrganizationSchema()}
           preloadImages={[heroImages[0]]}
         />
-        
+
         {activeSections.map((sec) => (
           <div key={sec.id || sec.type}>
             {renderSection(sec)}
@@ -709,7 +708,7 @@ const HomePage = () => {
   // Fallback to static layout
   return (
     <div className="min-h-screen bg-luxury-50">
-      <SEOHelmet 
+      <SEOHelmet
         title="Panstellia | Luxury Necklace Jewelry Collections"
         description="Discover exquisite necklace jewelry collections from Panstellia. Premium Luxe Ring, Royal Braces, Elite Series, and Piercings pieces for weddings, parties, and everyday elegance."
         keywords="luxury necklaces, luxe ring necklaces, royal braces necklaces, elite series jewelry, piercing jewelry, handcrafted necklaces, jewelry store"
@@ -717,7 +716,7 @@ const HomePage = () => {
         structuredData={getOrganizationSchema()}
         preloadImages={[heroImages[0]]}
       />
-      
+
       {/* Hero Section */}
       <section className="relative h-[65vh] sm:h-[75vh] md:h-[85vh] lg:h-[90vh] w-full overflow-hidden bg-luxury-900 flex items-center justify-start">
         {/* Background Slideshow */}
@@ -735,16 +734,16 @@ const HomePage = () => {
                 alt={`Featured Necklace ${index + 1}`}
                 priority={index === 0}
                 className="absolute inset-0 w-full h-full"
-                imgClassName="object-cover object-right"
+                imgClassName="object-cover object-center"
               />
             </motion.div>
           ))}
           <div className="absolute inset-0 bg-gradient-to-r from-luxury-900/90 via-luxury-900/50 to-transparent z-10" />
         </div>
-        
+
         {/* Hero Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 w-full">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.3 }}
@@ -761,8 +760,8 @@ const HomePage = () => {
                 Shop Now
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
-              <Link 
-                to="/products?category=Lux%2520Wear" 
+              <Link
+                to="/products?category=Lux%2520Wear"
                 className="border-2 border-white text-white py-3 px-6 rounded-lg font-semibold hover:bg-white hover:text-luxury-900 transition-colors duration-300 inline-flex items-center justify-center text-sm"
               >
                 Explore Collections
@@ -785,7 +784,7 @@ const HomePage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <motion.div 
+              <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -874,7 +873,7 @@ const HomePage = () => {
             <h2 className="font-serif text-3xl md:text-4xl font-bold text-luxury-900">Shop by Collection</h2>
             <p className="mt-4 text-luxury-600 text-sm md:text-base">Find the perfect piece for every occasion</p>
           </div>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
             {categories.filter(c => hideEmptyCollections ? c.count > 0 : true).map((category, index) => (
               <motion.div
@@ -892,7 +891,7 @@ const HomePage = () => {
                     className="w-full h-full transform group-hover:scale-110 transition-transform duration-500 ease-out"
                   />
                   <div className="absolute inset-0 bg-black/30 group-hover:bg-black/50 transition-all duration-300" />
-                  
+
                   <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-luxury-900 text-[10px] font-bold px-2 py-0.5 rounded-full z-10 shadow-sm">
                     {category.count} items
                   </span>
@@ -936,7 +935,7 @@ const HomePage = () => {
               ))}
             </div>
           ) : (
-            <motion.div 
+            <motion.div
               variants={bestsellersContainerVariants}
               initial="hidden"
               whileInView="visible"
@@ -985,15 +984,15 @@ const HomePage = () => {
               <p className="mt-3 sm:mt-4 text-white/90 text-base sm:text-lg leading-relaxed break-words">
                 Get upto 25% off on our Premium collection. Make your special day even more memorable with our exquisite designs.
               </p>
-              <Link 
-                to="/products?category=Lux%2520Wear" 
+              <Link
+                to="/products?category=Lux%2520Wear"
                 className="mt-5 sm:mt-6 inline-flex items-center px-5 sm:px-6 py-2.5 sm:py-3 bg-white text-gold-600 rounded-lg font-semibold hover:bg-luxury-50 transition-colors shadow-lg text-sm sm:text-base"
               >
                 View Collection
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Link>
             </div>
-            
+
             <div className="flex items-center justify-center relative w-full aspect-[4/3] mt-6 md:mt-0">
               <div className="relative w-full h-full overflow-hidden rounded-xl shadow-2xl bg-white">
                 {collectionImages.map((img, index) => (
@@ -1013,7 +1012,7 @@ const HomePage = () => {
                     />
                   </motion.div>
                 ))}
-                
+
                 <button
                   onClick={() => setCurrentImageIndex((prev) => (prev - 1 + collectionImages.length) % collectionImages.length)}
                   className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gold-600 p-2 rounded-full transition-all z-10 shadow-lg border border-luxury-100/50"
@@ -1028,17 +1027,16 @@ const HomePage = () => {
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
-                
+
                 <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10 bg-black/20 p-1.5 rounded-full backdrop-blur-sm">
                   {collectionImages.map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentImageIndex(index)}
-                      className={`w-2 h-2 rounded-full transition-all ${
-                        index === currentImageIndex
+                      className={`w-2 h-2 rounded-full transition-all ${index === currentImageIndex
                           ? 'bg-white w-6'
                           : 'bg-white/50 hover:bg-white'
-                      }`}
+                        }`}
                       aria-label={`Go to slide ${index + 1}`}
                     />
                   ))}
