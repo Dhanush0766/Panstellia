@@ -537,7 +537,7 @@ const HomePage = () => {
   };
 
   const renderBannerSection = (sec) => {
-    const images = sec.images || collectionImages;
+    const images = collectionImages;
     return (
       <section className="py-16 bg-gradient-to-r from-gold-500 to-gold-600 relative overflow-hidden shadow-inner">
         <div className="absolute inset-0 bg-pattern opacity-20" />
@@ -573,7 +573,7 @@ const HomePage = () => {
                     className="absolute inset-0"
                   >
                     <OptimizedImage
-                      src={getOptimizedImageUrl(img, { width: 800, quality: 80 })}
+                      src={img}
                       alt={`Collection ${index + 1}`}
                       priority={index === 0}
                       className="absolute inset-0 w-full h-full"
